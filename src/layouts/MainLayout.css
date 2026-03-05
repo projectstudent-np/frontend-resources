@@ -1,0 +1,23 @@
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(var(--topbar-height) + var(--navbar-height) + var(--subnav-height));
+}
+
+/* Home page nao precisa do spacing extra pois o hero ja cuida disso */
+.main-content > .home {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: calc(var(--topbar-height) + var(--navbar-height));
+    }
+}

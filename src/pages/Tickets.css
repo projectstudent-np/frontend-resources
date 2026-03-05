@@ -1,0 +1,128 @@
+/* ===== Tickets Page ===== */
+.tickets-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--space-6);
+    min-height: 560px;
+}
+
+.tickets-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.ticket-sidebar-item {
+    background: var(--color-surface);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    box-shadow: var(--shadow-xs);
+}
+
+.ticket-sidebar-item:hover {
+    border-color: var(--brand-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.ticket-sidebar-item.active {
+    border-color: var(--brand-600);
+    background: var(--brand-25);
+    box-shadow: 0 0 0 1px var(--brand-600);
+}
+
+.ticket-sidebar-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tickets-chat {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+}
+
+.tickets-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--gray-400);
+    font-size: var(--text-md);
+    gap: var(--space-3);
+}
+
+.tickets-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.tickets-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 360px;
+}
+
+.message-bubble {
+    max-width: 75%;
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+}
+
+.message-bubble.mine {
+    align-self: flex-end;
+    background: var(--brand-600);
+    color: #fff;
+}
+
+.message-bubble.theirs {
+    align-self: flex-start;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-900);
+}
+
+.message-text {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.message-time {
+    font-size: var(--text-xs);
+    margin-top: var(--space-1);
+    opacity: 0.65;
+    text-align: right;
+}
+
+.tickets-input-row {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--gray-200);
+}
+
+.tickets-input-row .input-field {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .tickets-layout {
+        grid-template-columns: 1fr;
+    }
+}
