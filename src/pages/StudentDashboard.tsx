@@ -560,10 +560,7 @@ export default function StudentDashboard() {
     const [cancelLoading, setCancelLoading] = useState(false);
 
     // Carteirinha state (approved)
-    const [studentFull, setStudentFull] = useState<{
-        cursos?: { nome: string }; periodos?: { nome: string };
-        instituicoes?: { nome: string }; cidades?: { nome: string };
-    } | null>(null);
+    const [studentFull, setStudentFull] = useState<Record<string, any> | null>(null);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [cardExpiryDate, setCardExpiryDate] = useState<string | null>(null);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);

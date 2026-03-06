@@ -61,7 +61,7 @@ export default function Access() {
     const [emailTaken, setEmailTaken] = useState(false);
     const [checkingEmail, setCheckingEmail] = useState(false);
     const [regErrors, setRegErrors] = useState<{ cpf?: string; email?: string; password?: string; confirmPassword?: string; terms?: string }>({});
-    const [regTouched, setRegTouched] = useState<{ cpf?: boolean; email?: boolean; password?: boolean; confirmPassword?: boolean }>({});
+    const [_regTouched, setRegTouched] = useState<{ cpf?: boolean; email?: boolean; password?: boolean; confirmPassword?: boolean }>({});
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [regServerError, setRegServerError] = useState('');
     const [regLoading, setRegLoading] = useState(false);

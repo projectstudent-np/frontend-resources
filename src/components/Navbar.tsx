@@ -60,7 +60,7 @@ export default function Navbar() {
     const [profileSlideoutOpen, setProfileSlideoutOpen] = useState(false);
     const [externalLinkModal, setExternalLinkModal] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const sitePropsRef = useRef<HTMLDivElement>(null);
+    const sitePropsRef = useRef<HTMLLIElement>(null);
     const lastScrollY = useRef(0);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
