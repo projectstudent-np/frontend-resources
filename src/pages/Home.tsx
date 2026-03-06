@@ -28,7 +28,7 @@ export default function Home() {
                 </div>
                 <div className="container hero-content">
                     <h1 className="hero-title">
-                        Carteirinha de Transporte via<span className="hero-title-accent"> Digital</span>
+                        Carteirinha de Transporte<span className="hero-title-accent"> Digital</span>
                     </h1>
                     <p className="hero-subtitle">
                         Sistema oficial de gerenciamento de carteirinhas de transporte
