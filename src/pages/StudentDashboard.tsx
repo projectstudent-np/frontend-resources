@@ -1027,7 +1027,7 @@ export default function StudentDashboard() {
         // Gerar QR code com URL de validação
         const qrUrl = `${window.location.origin}/validate/${studentData.id}`
         const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-          width: 140,
+          width: 200,
           margin: 1,
         })
         setQrCodeDataUrl(qrDataUrl)

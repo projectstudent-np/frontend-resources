@@ -147,7 +147,7 @@ export default function DriverDashboard() {
 
       const qrUrl = `${window.location.origin}/validate/${id}`
       const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
-        width: 140,
+        width: 200,
         margin: 1,
       })
 
@@ -201,6 +201,16 @@ export default function DriverDashboard() {
       {/* Scanner de câmera */}
       {scannerActive && (
         <div className="scanner-section">
+          <div className="scanner-section-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <div className="scanner-section-header-text">
+              <h3>Escanear QR Code</h3>
+              <p>Aponte a câmera para o QR Code da carteirinha</p>
+            </div>
+          </div>
           <div id="qr-reader" />
         </div>
       )}
@@ -274,8 +284,7 @@ export default function DriverDashboard() {
             </span>
           </div>
 
-          <div className="student-card-duo">
-            {/* FRENTE */}
+          <div className="student-card-virtual">
             <div className="student-card-document">
               <div className="student-card-doc-header">
                 <div className="student-card-doc-header-row">
@@ -286,7 +295,7 @@ export default function DriverDashboard() {
                   />
                   <div>
                     <h3>Prefeitura Municipal de Nova Ponte</h3>
-                    <p>Carteirinha Estudantil</p>
+                    <p>Carteirinha Estudantil Digital</p>
                   </div>
                 </div>
               </div>
@@ -320,9 +329,7 @@ export default function DriverDashboard() {
                   )}
                   {result.course && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Curso:
-                      </span>
+                      <span className="student-card-doc-field-label">Curso:</span>
                       <span className="student-card-doc-field-value">
                         {result.course}
                       </span>
@@ -330,9 +337,7 @@ export default function DriverDashboard() {
                   )}
                   {result.period && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Período:
-                      </span>
+                      <span className="student-card-doc-field-label">Período:</span>
                       <span className="student-card-doc-field-value">
                         {result.period}
                       </span>
@@ -340,9 +345,7 @@ export default function DriverDashboard() {
                   )}
                   {result.institution && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Instituição:
-                      </span>
+                      <span className="student-card-doc-field-label">Instituição:</span>
                       <span className="student-card-doc-field-value">
                         {result.institution}
                       </span>
@@ -350,9 +353,7 @@ export default function DriverDashboard() {
                   )}
                   {result.studentIdNumber && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Matrícula:
-                      </span>
+                      <span className="student-card-doc-field-label">Matrícula:</span>
                       <span className="student-card-doc-field-value">
                         {result.studentIdNumber}
                       </span>
@@ -360,9 +361,7 @@ export default function DriverDashboard() {
                   )}
                   {result.city && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Cidade:
-                      </span>
+                      <span className="student-card-doc-field-label">Cidade:</span>
                       <span className="student-card-doc-field-value">
                         {result.city}
                       </span>
@@ -370,9 +369,7 @@ export default function DriverDashboard() {
                   )}
                   {result.phone && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Telefone:
-                      </span>
+                      <span className="student-card-doc-field-label">Telefone:</span>
                       <span className="student-card-doc-field-value">
                         {formatPhone(result.phone)}
                       </span>
@@ -380,44 +377,23 @@ export default function DriverDashboard() {
                   )}
                 </div>
               </div>
-              <div className="student-card-doc-footer">
-                <span>
-                  Validade:{" "}
-                  <strong>
-                    {result.expiresAt ? formatDate(result.expiresAt) : "—"}
-                  </strong>
-                </span>
-              </div>
-            </div>
-
-            {/* VERSO */}
-            <div className="student-card-document">
-              <div className="student-card-doc-header">
-                <div className="student-card-doc-header-row">
-                  <img
-                    src="/logo-prefeitura.png"
-                    alt="Logo"
-                    className="student-card-doc-logo"
-                  />
-                  <div>
-                    <h3>Prefeitura Municipal de Nova Ponte</h3>
-                    <p>Verso da Carteirinha</p>
-                  </div>
-                </div>
-              </div>
-              <div className="student-card-doc-back">
+              <div className="student-card-virtual-bottom">
                 {result.qrCodeDataUrl && (
                   <img
                     src={result.qrCodeDataUrl}
                     alt="QR Code"
-                    className="student-card-doc-qr"
+                    className="student-card-virtual-qr"
                   />
                 )}
-                <p className="student-card-doc-back-text">
-                  Apresente esta carteirinha ao motorista para validação. Em
-                  caso de perda, entre em contato com a prefeitura.
-                </p>
-                <p className="student-card-doc-back-url">novaponte.mg.gov.br</p>
+                <div className="student-card-virtual-bottom-info">
+                  <span>
+                    Validade:{" "}
+                    <strong>
+                      {result.expiresAt ? formatDate(result.expiresAt) : "—"}
+                    </strong>
+                  </span>
+                  <p className="student-card-doc-back-url">novaponte.mg.gov.br</p>
+                </div>
               </div>
             </div>
           </div>

@@ -240,7 +240,7 @@ function TicketDetailModal({
     // QR code e validade (para tickets aprovados)
     if (ticket.status === "approved" && studentData) {
       const qrUrl = `${window.location.origin}/validate/${studentData.id}`
-      const qrData = await QRCode.toDataURL(qrUrl, { width: 140, margin: 1 })
+      const qrData = await QRCode.toDataURL(qrUrl, { width: 200, margin: 1 })
       setQrCodeDataUrl(qrData)
 
       const { data: cardData } = await supabase

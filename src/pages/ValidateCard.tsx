@@ -105,7 +105,7 @@ export default function ValidateCard() {
     // Gerar QR code igual ao do StudentDashboard
     const qrUrl = `${window.location.origin}/validate/${id}`
     const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
-      width: 140,
+      width: 200,
       margin: 1,
     })
 
@@ -166,9 +166,8 @@ export default function ValidateCard() {
             </span>
           </div>
 
-          {/* Layout frente + verso igual ao StudentDashboard */}
-          <div className="student-card-duo">
-            {/* FRENTE */}
+          {/* Carteirinha Digital */}
+          <div className="student-card-virtual">
             <div className="student-card-document">
               <div className="student-card-doc-header">
                 <div className="student-card-doc-header-row">
@@ -179,7 +178,7 @@ export default function ValidateCard() {
                   />
                   <div>
                     <h3>Prefeitura Municipal de Nova Ponte</h3>
-                    <p>Carteirinha Estudantil</p>
+                    <p>Carteirinha Estudantil Digital</p>
                   </div>
                 </div>
               </div>
@@ -213,9 +212,7 @@ export default function ValidateCard() {
                   )}
                   {result.course && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Curso:
-                      </span>
+                      <span className="student-card-doc-field-label">Curso:</span>
                       <span className="student-card-doc-field-value">
                         {result.course}
                       </span>
@@ -223,9 +220,7 @@ export default function ValidateCard() {
                   )}
                   {result.period && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Período:
-                      </span>
+                      <span className="student-card-doc-field-label">Período:</span>
                       <span className="student-card-doc-field-value">
                         {result.period}
                       </span>
@@ -233,9 +228,7 @@ export default function ValidateCard() {
                   )}
                   {result.institution && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Instituição:
-                      </span>
+                      <span className="student-card-doc-field-label">Instituição:</span>
                       <span className="student-card-doc-field-value">
                         {result.institution}
                       </span>
@@ -243,9 +236,7 @@ export default function ValidateCard() {
                   )}
                   {result.studentIdNumber && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Matrícula:
-                      </span>
+                      <span className="student-card-doc-field-label">Matrícula:</span>
                       <span className="student-card-doc-field-value">
                         {result.studentIdNumber}
                       </span>
@@ -253,9 +244,7 @@ export default function ValidateCard() {
                   )}
                   {result.city && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Cidade:
-                      </span>
+                      <span className="student-card-doc-field-label">Cidade:</span>
                       <span className="student-card-doc-field-value">
                         {result.city}
                       </span>
@@ -263,9 +252,7 @@ export default function ValidateCard() {
                   )}
                   {result.phone && (
                     <div className="student-card-doc-field">
-                      <span className="student-card-doc-field-label">
-                        Telefone:
-                      </span>
+                      <span className="student-card-doc-field-label">Telefone:</span>
                       <span className="student-card-doc-field-value">
                         {formatPhone(result.phone)}
                       </span>
@@ -273,44 +260,23 @@ export default function ValidateCard() {
                   )}
                 </div>
               </div>
-              <div className="student-card-doc-footer">
-                <span>
-                  Validade:{" "}
-                  <strong>
-                    {result.expiresAt ? formatDate(result.expiresAt) : "—"}
-                  </strong>
-                </span>
-              </div>
-            </div>
-
-            {/* VERSO */}
-            <div className="student-card-document">
-              <div className="student-card-doc-header">
-                <div className="student-card-doc-header-row">
-                  <img
-                    src="/logo-prefeitura.png"
-                    alt="Logo"
-                    className="student-card-doc-logo"
-                  />
-                  <div>
-                    <h3>Prefeitura Municipal de Nova Ponte</h3>
-                    <p>Verso da Carteirinha</p>
-                  </div>
-                </div>
-              </div>
-              <div className="student-card-doc-back">
+              <div className="student-card-virtual-bottom">
                 {result.qrCodeDataUrl && (
                   <img
                     src={result.qrCodeDataUrl}
                     alt="QR Code"
-                    className="student-card-doc-qr"
+                    className="student-card-virtual-qr"
                   />
                 )}
-                <p className="student-card-doc-back-text">
-                  Apresente esta carteirinha ao motorista para validação. Em
-                  caso de perda, entre em contato com a prefeitura.
-                </p>
-                <p className="student-card-doc-back-url">novaponte.mg.gov.br</p>
+                <div className="student-card-virtual-bottom-info">
+                  <span>
+                    Validade:{" "}
+                    <strong>
+                      {result.expiresAt ? formatDate(result.expiresAt) : "—"}
+                    </strong>
+                  </span>
+                  <p className="student-card-doc-back-url">novaponte.mg.gov.br</p>
+                </div>
               </div>
             </div>
           </div>
