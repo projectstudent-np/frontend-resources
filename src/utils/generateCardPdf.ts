@@ -75,22 +75,22 @@ export async function generateCardPdf(element: HTMLElement, fileName: string) {
 
     pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH)
 
-    // Download: use blob approach on mobile for real save dialog
+    // Download: on mobile, use navigator.share (native save/share sheet)
+    // or fall back to opening the PDF in a new tab for the user to save manually.
+    // The <a download> approach doesn't work on most mobile browsers.
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
     if (isMobile) {
       const blob = pdf.output("blob")
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = blobUrl
-      a.download = fileName
-      a.style.display = "none"
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => {
-        document.body.removeChild(a)
-        URL.revokeObjectURL(blobUrl)
-      }, 1000)
+      const file = new File([blob], fileName, { type: "application/pdf" })
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: fileName })
+      } else {
+        const blobUrl = URL.createObjectURL(blob)
+        window.open(blobUrl, "_blank")
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+      }
     } else {
       pdf.save(fileName)
     }
