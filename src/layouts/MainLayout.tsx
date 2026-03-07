@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import CookieConsent from '../components/CookieConsent';
 import './MainLayout.css';
 
-const NO_FOOTER_ROUTES = ['/student', '/driver', '/executive', '/admin', '/tickets'];
+const NO_FOOTER_ROUTES = ['/student', '/driver', '/executive', '/admin', '/tickets', '/validate'];
 
 export default function MainLayout() {
     const { pathname } = useLocation();

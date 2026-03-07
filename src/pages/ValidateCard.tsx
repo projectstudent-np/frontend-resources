@@ -69,7 +69,7 @@ export default function ValidateCard() {
 
     try {
       const res = await fetch(
-        `${API_URL}/api/cards/validate-public/${encodeURIComponent(id)}`,
+        `${API_URL}/cards/validate-public/${encodeURIComponent(id)}`,
       )
       const json = await res.json()
 
