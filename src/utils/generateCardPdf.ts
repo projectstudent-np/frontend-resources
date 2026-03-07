@@ -2,8 +2,9 @@ import { toPng } from "html-to-image"
 import { jsPDF } from "jspdf"
 
 /**
- * Captures a DOM element as PNG and generates a downloadable PDF.
- * Works consistently on both desktop and mobile.
+ * Captures a DOM element as PNG and places it centred on an A4 page.
+ * Forces a fixed render width so mobile and desktop produce the same result.
+ * Uses blob download on mobile to trigger a real save dialog.
  */
 export async function generateCardPdf(element: HTMLElement, fileName: string) {
   // If the element lives inside an offscreen container, temporarily bring it
@@ -11,20 +12,30 @@ export async function generateCardPdf(element: HTMLElement, fileName: string) {
   const offscreen = element.closest(
     ".student-card-offscreen",
   ) as HTMLElement | null
-  const savedStyle = offscreen?.getAttribute("style") ?? ""
+  const savedOffscreenStyle = offscreen?.getAttribute("style") ?? ""
   if (offscreen) {
-    // Bring on-screen with full opacity so toPng can capture rendered content.
-    // z-index:-9999 keeps it behind all visible UI.
     offscreen.style.cssText =
       "position:fixed;left:0;top:0;z-index:-9999;pointer-events:none;"
-    // Wait for browser to paint images / QR codes
-    await new Promise((r) => setTimeout(r, 100))
   }
+
+  // Detect card type
+  const isDuo = element.classList.contains("student-card-duo")
+  const isPhysicalPdf = element.classList.contains("physical-pdf-page")
+  const isDigitalPdf = element.classList.contains("digital-pdf-page")
+
+  // Force a consistent render width regardless of viewport (mobile vs desktop).
+  const renderWidth = isPhysicalPdf ? 1100 : isDuo ? 1100 : 560
+  const savedElementStyle = element.getAttribute("style") ?? ""
+  element.style.width = `${renderWidth}px`
+  element.style.maxWidth = "none"
+  element.style.minWidth = "0"
+
+  // Wait for browser to repaint with forced width
+  await new Promise((r) => setTimeout(r, 150))
 
   try {
     const dataUrl = await toPng(element, { cacheBust: true, pixelRatio: 3 })
 
-    // Load image to get natural dimensions
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const i = new Image()
       i.onload = () => resolve(i)
@@ -35,24 +46,59 @@ export async function generateCardPdf(element: HTMLElement, fileName: string) {
     const imgW = img.naturalWidth
     const imgH = img.naturalHeight
 
-    // Create PDF with same aspect ratio as the captured image
-    // Use mm units; fit to A4 width (210mm) with proportional height
-    const pdfWidth = 210
-    const pdfHeight = (imgH / imgW) * pdfWidth
+    // Always A4 portrait — the card content is scaled to fit inside
+    const pageW = 210 // mm
+    const pageH = 297
 
-    const orientation = pdfHeight > pdfWidth ? "portrait" : "landscape"
     const pdf = new jsPDF({
-      orientation,
+      orientation: "portrait",
       unit: "mm",
-      format: [pdfWidth, pdfHeight],
+      format: "a4",
     })
 
-    pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight)
-    pdf.save(fileName)
+    const margin = 20 // mm
+    const maxW = pageW - margin * 2
+    const maxH = pageH - margin * 2
+
+    const ratio = imgW / imgH
+    let drawW = maxW
+    let drawH = drawW / ratio
+
+    if (drawH > maxH) {
+      drawH = maxH
+      drawW = drawH * ratio
+    }
+
+    // Position at the top for PDF pages with headers, centre for bare cards
+    const x = (pageW - drawW) / 2
+    const y = isDigitalPdf || isPhysicalPdf ? margin : (pageH - drawH) / 2
+
+    pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH)
+
+    // Download: use blob approach on mobile for real save dialog
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+    if (isMobile) {
+      const blob = pdf.output("blob")
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = blobUrl
+      a.download = fileName
+      a.style.display = "none"
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(blobUrl)
+      }, 1000)
+    } else {
+      pdf.save(fileName)
+    }
   } finally {
-    // Restore offscreen positioning
+    // Restore original styles
+    element.style.cssText = savedElementStyle
     if (offscreen) {
-      offscreen.style.cssText = savedStyle
+      offscreen.style.cssText = savedOffscreenStyle
     }
   }
 }

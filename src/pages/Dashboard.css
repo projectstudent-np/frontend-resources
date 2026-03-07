@@ -346,7 +346,7 @@
 
 .student-card-duo .student-card-document {
   flex: 1;
-  min-width: 420px;
+  min-width: 500px;
   max-width: none;
 }
 
@@ -422,6 +422,102 @@
 
 .student-card-virtual-bottom-info strong {
   color: var(--gray-900);
+}
+
+/* ── Digital Card PDF layout (CNH-style) ─────── */
+.digital-pdf-page {
+  background: #fff;
+  font-family: inherit;
+}
+
+.digital-pdf-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.digital-pdf-header img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.digital-pdf-header-text h3 {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.digital-pdf-header-text p {
+  font-size: var(--text-xs);
+  opacity: 0.85;
+  margin: 2px 0 0;
+}
+
+.pdf-description {
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+  text-align: left;
+  margin: var(--space-3) var(--space-5);
+  line-height: 1.4;
+}
+
+.digital-pdf-body {
+  padding: var(--space-6);
+}
+
+.digital-pdf-body .student-card-document {
+  border: none;
+  box-shadow: none;
+  max-width: none;
+}
+
+.digital-pdf-body .student-card-doc-header {
+  display: none;
+}
+
+/* ── Physical Card PDF layout (with page header) ── */
+.physical-pdf-page {
+  background: #fff;
+  font-family: inherit;
+}
+
+.physical-pdf-page .digital-pdf-header {
+  padding: 31px 39px;
+  gap: 23px;
+}
+
+.physical-pdf-page .digital-pdf-header img {
+  width: 70px;
+  height: 70px;
+}
+
+.physical-pdf-page .digital-pdf-header-text h3 {
+  font-size: 28px;
+}
+
+.physical-pdf-page .digital-pdf-header-text p {
+  font-size: 24px;
+}
+
+.physical-pdf-page .pdf-description {
+  font-size: 24px;
+  margin: 24px 39px;
+}
+
+.physical-pdf-body {
+  padding: var(--space-5);
+}
+
+.physical-pdf-body .student-card-document {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
 }
 
 /* ── Validate Page ───────────────────────────── */
@@ -1941,6 +2037,16 @@
 
   .student-card-duo {
     flex-direction: column;
+  }
+
+  /* Offscreen cards (for PDF export) must always stay side-by-side */
+  .student-card-offscreen .student-card-duo {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .student-card-offscreen .student-card-duo .student-card-document {
+    min-width: 500px;
   }
 
   .validate-card-body {

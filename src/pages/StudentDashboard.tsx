@@ -904,6 +904,7 @@ export default function StudentDashboard() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const digitalCardRef = useRef<HTMLDivElement>(null)
+  const digitalPdfRef = useRef<HTMLDivElement>(null)
 
   // Stepper state
   const [currentStep, setCurrentStep] = useState(0)
@@ -1448,9 +1449,9 @@ export default function StudentDashboard() {
             <button
               className="card-action-btn"
               onClick={() => {
-                if (!digitalCardRef.current) return
+                if (!digitalPdfRef.current) return
                 generateCardPdf(
-                  digitalCardRef.current,
+                  digitalPdfRef.current,
                   "carteirinha-digital.pdf",
                 )
               }}
@@ -1659,7 +1660,22 @@ export default function StudentDashboard() {
 
           {/* Modelo Física (frente + verso) — oculto, usado apenas para gerar PDF */}
           <div className="student-card-offscreen">
-            <div ref={cardRef} className="student-card-duo">
+            <div ref={cardRef} className="physical-pdf-page">
+              <div className="digital-pdf-header">
+                <img
+                  src="/logo-prefeitura.png"
+                  alt="Logo"
+                  crossOrigin="anonymous"
+                />
+                <div className="digital-pdf-header-text">
+                  <h3>Prefeitura Municipal de Nova Ponte</h3>
+                  <p>Carteirinha Estudantil</p>
+                </div>
+              </div>
+              <p className="pdf-description">
+                Aqui está sua carteirinha física para impressão — gerada pelo Sistema de Carteirinha de Transporte da Prefeitura Municipal de Nova Ponte.
+              </p>
+              <div className="physical-pdf-body student-card-duo">
               {/* FRENTE */}
               <div className="student-card-document">
                 <div className="student-card-doc-header">
@@ -1796,6 +1812,124 @@ export default function StudentDashboard() {
                   <p className="student-card-doc-back-url">
                     novaponte.mg.gov.br
                   </p>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Digital PDF (CNH-style) — offscreen, only for PDF export */}
+          <div className="student-card-offscreen">
+            <div ref={digitalPdfRef} className="digital-pdf-page">
+              <div className="digital-pdf-header">
+                <img
+                  src="/logo-prefeitura.png"
+                  alt="Logo"
+                  crossOrigin="anonymous"
+                />
+                <div className="digital-pdf-header-text">
+                  <h3>Prefeitura Municipal de Nova Ponte</h3>
+                  <p>Carteirinha Estudantil Digital</p>
+                </div>
+              </div>
+              <p className="pdf-description">
+                Aqui está sua carteirinha digital — gerada pelo Sistema de Carteirinha de Transporte da Prefeitura Municipal de Nova Ponte.
+              </p>
+              <div className="digital-pdf-body">
+                <div className="student-card-document">
+                  <div className="student-card-doc-header">
+                    <div className="student-card-doc-header-row">
+                      <div />
+                    </div>
+                  </div>
+                  <div className="student-card-doc-body">
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt="Foto 3x4"
+                        className="student-card-doc-photo"
+                        crossOrigin="anonymous"
+                        onLoad={(e) =>
+                          (e.currentTarget.dataset.loaded = "true")
+                        }
+                      />
+                    ) : (
+                      <div className="student-card-doc-photo-placeholder">
+                        Sem foto
+                      </div>
+                    )}
+                    <div className="student-card-doc-fields">
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Nome:</span>
+                        <span className="student-card-doc-field-value">
+                          {displayName}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">CPF:</span>
+                        <span className="student-card-doc-field-value">
+                          {user ? formatCPF(user.cpf) : "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Curso:</span>
+                        <span className="student-card-doc-field-value">
+                          {studentFull?.cursos?.nome ?? "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Período:</span>
+                        <span className="student-card-doc-field-value">
+                          {studentFull?.periodos?.nome ?? "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Instituição:</span>
+                        <span className="student-card-doc-field-value">
+                          {studentFull?.instituicoes?.nome ?? "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Matrícula:</span>
+                        <span className="student-card-doc-field-value">
+                          {student.student_id_number || "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Cidade:</span>
+                        <span className="student-card-doc-field-value">
+                          {studentFull?.cidades?.nome ?? "—"}
+                        </span>
+                      </div>
+                      <div className="student-card-doc-field">
+                        <span className="student-card-doc-field-label">Telefone:</span>
+                        <span className="student-card-doc-field-value">
+                          {user?.phone ? formatPhone(user.phone) : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="student-card-virtual-bottom">
+                    {qrCodeDataUrl && (
+                      <img
+                        src={qrCodeDataUrl}
+                        alt="QR Code"
+                        className="student-card-virtual-qr"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    <div className="student-card-virtual-bottom-info">
+                      <span>
+                        Validade:{" "}
+                        <strong>
+                          {cardExpiryDate ? formatDate(cardExpiryDate) : "—"}
+                        </strong>
+                      </span>
+                      <p className="student-card-doc-back-url">
+                        novaponte.mg.gov.br
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
