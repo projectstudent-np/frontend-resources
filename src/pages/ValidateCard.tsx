@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { supabase } from "../app/supabase"
 import QRCode from "qrcode"
 import usePageTitle from "../hooks/usePageTitle"
 import "./Dashboard.css"
+
+const API_URL = import.meta.env.VITE_API_URL as string
 
 function formatCPF(cpf: string) {
   const c = cpf.replace(/\D/g, "")
@@ -26,16 +27,6 @@ function formatPhone(value: string) {
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-interface StudentWithRelations {
-  foto_3x4_path: string | null
-  student_id_number: string
-  users: { full_name: string; cpf: string; phone: string } | null
-  cursos: { nome: string } | null
-  periodos: { nome: string } | null
-  instituicoes: { nome: string } | null
-  cidades: { nome: string } | null
-}
 
 interface ValidateResult {
   valid: boolean
@@ -76,55 +67,46 @@ export default function ValidateCard() {
       return
     }
 
-    const { data: cardData } = await supabase
-      .from("student_cards")
-      .select(
-        "*, students(*, users(full_name, cpf, phone), cursos(nome), periodos(nome), instituicoes(nome), cidades(nome))",
+    try {
+      const res = await fetch(
+        `${API_URL}/api/cards/validate-public/${encodeURIComponent(id)}`,
       )
-      .eq("qr_code", id)
-      .maybeSingle()
+      const json = await res.json()
 
-    if (!cardData) {
+      if (!json.success || !json.data) {
+        setResult({ valid: false })
+        setLoading(false)
+        return
+      }
+
+      const d = json.data
+
+      const qrUrl = `${window.location.origin}/validate/${id}`
+      const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
+        width: 200,
+        margin: 1,
+      })
+
+      setResult({
+        valid: d.valid,
+        expired: d.expired,
+        studentName: d.studentName,
+        cpf: d.cpf,
+        phone: d.phone,
+        course: d.course,
+        period: d.period,
+        institution: d.institution,
+        city: d.city,
+        studentIdNumber: d.studentIdNumber,
+        photoUrl: d.photoUrl,
+        expiresAt: d.expiresAt,
+        qrCodeDataUrl,
+      })
+    } catch {
       setResult({ valid: false })
+    } finally {
       setLoading(false)
-      return
     }
-
-    const student = cardData.students as StudentWithRelations | null
-    const isActive = cardData.status === "active"
-    const isExpired = new Date(cardData.expires_at) < new Date()
-
-    let photoUrl: string | undefined
-    if (student?.foto_3x4_path) {
-      const { data: signedData } = await supabase.storage
-        .from("student-documents")
-        .createSignedUrl(student.foto_3x4_path, 300)
-      if (signedData?.signedUrl) photoUrl = signedData.signedUrl
-    }
-
-    // Gerar QR code igual ao do StudentDashboard
-    const qrUrl = `${window.location.origin}/validate/${id}`
-    const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
-      width: 200,
-      margin: 1,
-    })
-
-    setResult({
-      valid: isActive && !isExpired,
-      expired: isExpired,
-      studentName: student?.users?.full_name,
-      cpf: student?.users?.cpf,
-      phone: student?.users?.phone,
-      course: student?.cursos?.nome,
-      period: student?.periodos?.nome,
-      institution: student?.instituicoes?.nome,
-      city: student?.cidades?.nome,
-      studentIdNumber: student?.student_id_number,
-      photoUrl,
-      expiresAt: cardData.expires_at,
-      qrCodeDataUrl,
-    })
-    setLoading(false)
   }
 
   return (
