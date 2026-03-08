@@ -364,6 +364,7 @@
 .student-card-doc-qr {
   margin: var(--space-3) 0;
   border-radius: var(--radius-sm);
+  max-width: 140px;
 }
 
 .student-card-doc-back-text {
