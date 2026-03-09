@@ -172,6 +172,7 @@ function TicketDetailModal({
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("")
   const [cardExpiryDate, setCardExpiryDate] = useState("")
   const [downloadMenu, setDownloadMenu] = useState(false)
+  const [mobileActions, setMobileActions] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const digitalCardRef = useRef<HTMLDivElement>(null)
   const digitalPdfRef = useRef<HTMLDivElement>(null)
@@ -1086,9 +1087,9 @@ function TicketDetailModal({
             </>
           )}
 
-          {/* Footer com ações */}
+          {/* Footer com ações — desktop */}
           {!loadingData && (
-            <div className="exec-modal-footer">
+            <div className="exec-modal-footer exec-modal-footer-desktop">
               {ticket.status === "open" && (
                 <>
                   <button
@@ -1202,6 +1203,19 @@ function TicketDetailModal({
               )}
             </div>
           )}
+
+          {/* Footer com ações — mobile (botão único "Ações") */}
+          {!loadingData && (ticket.status === "open" || ticket.status === "approved" || ticket.status === "rejected") && (
+            <div className="exec-modal-footer exec-modal-footer-mobile">
+              <button
+                className="btn btn-primary btn-sm"
+                style={{ width: "100%" }}
+                onClick={() => setMobileActions(true)}
+              >
+                Ações
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1227,6 +1241,119 @@ function TicketDetailModal({
           onCancel={() => setJustDialog(null)}
           loading={actionLoading}
         />
+      )}
+
+      {/* Mobile action sheet */}
+      {mobileActions && (
+        <div className="exec-modal-overlay" onClick={() => setMobileActions(false)}>
+          <div className="exec-action-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="exec-action-sheet-header">
+              <h3>Ações</h3>
+              <button className="exec-modal-close" onClick={() => setMobileActions(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="exec-action-sheet-body">
+              {ticket.status === "open" && (
+                <>
+                  <button
+                    className="exec-action-sheet-btn exec-action-sheet-btn--primary"
+                    onClick={() => { setMobileActions(false); handleApprove() }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    {actionLoading ? "Salvando..." : "Aprovar"}
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn exec-action-sheet-btn--danger"
+                    onClick={() => { setMobileActions(false); setJustDialog("reject") }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    Rejeitar
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn"
+                    onClick={() => { setMobileActions(false); setJustDialog("info") }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                    Mais Infos
+                  </button>
+                </>
+              )}
+              {ticket.status === "approved" && (
+                <>
+                  <button
+                    className="exec-action-sheet-btn exec-action-sheet-btn--primary"
+                    onClick={() => {
+                      if (!cardRef.current) return
+                      generateCardPdf(
+                        cardRef.current,
+                        `carteirinha-fisica-${ticket.users?.full_name ?? "estudante"}.pdf`,
+                      )
+                      setMobileActions(false)
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                    PDF Física
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn exec-action-sheet-btn--primary"
+                    onClick={() => {
+                      if (!digitalPdfRef.current) return
+                      generateCardPdf(
+                        digitalPdfRef.current,
+                        `carteirinha-digital-${ticket.users?.full_name ?? "estudante"}.pdf`,
+                      )
+                      setMobileActions(false)
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                    PDF Digital
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn"
+                    onClick={() => { setMobileActions(false); handleReopen() }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+                    {actionLoading ? "Salvando..." : "Reabrir como Pendente"}
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn exec-action-sheet-btn--danger"
+                    onClick={() => { setMobileActions(false); setJustDialog("reject") }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    Rejeitar
+                  </button>
+                  <button
+                    className="exec-action-sheet-btn"
+                    onClick={() => { setMobileActions(false); setJustDialog("info") }}
+                    disabled={actionLoading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                    Mais Infos
+                  </button>
+                </>
+              )}
+              {ticket.status === "rejected" && (
+                <button
+                  className="exec-action-sheet-btn"
+                  onClick={() => { setMobileActions(false); handleUnblock() }}
+                  disabled={actionLoading}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" /></svg>
+                  {actionLoading ? "Salvando..." : "Desbloquear Estudante"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
