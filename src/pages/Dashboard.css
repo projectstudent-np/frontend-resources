@@ -1620,7 +1620,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 200;
   padding: var(--space-4);
 }
 
@@ -1738,6 +1738,97 @@
   background: var(--gray-25);
   position: sticky;
   bottom: 0;
+}
+
+/* Mobile: hide desktop footer, show mobile footer */
+.exec-modal-footer-mobile {
+  display: none;
+}
+
+/* ── Action Sheet (mobile) ──── */
+.exec-action-sheet {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.exec-action-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.exec-action-sheet-header h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.exec-action-sheet-body {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.exec-action-sheet-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-4);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.exec-action-sheet-btn:hover {
+  background: var(--gray-50);
+}
+
+.exec-action-sheet-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exec-action-sheet-btn--primary {
+  background: var(--accent-50);
+  border-color: var(--accent-200);
+  color: var(--accent-700);
+}
+
+.exec-action-sheet-btn--primary:hover {
+  background: var(--accent-100);
+}
+
+.exec-action-sheet-btn--danger {
+  background: var(--error-50);
+  border-color: var(--error-200);
+  color: var(--error-700);
+}
+
+.exec-action-sheet-btn--danger:hover {
+  background: var(--error-100);
 }
 
 .exec-download-menu {
@@ -2056,6 +2147,14 @@
     max-height: 100dvh;
     height: 100dvh;
     border-radius: 0;
+  }
+
+  .exec-modal-footer-desktop {
+    display: none;
+  }
+
+  .exec-modal-footer-mobile {
+    display: flex;
   }
 
   .exec-modal-grid {
