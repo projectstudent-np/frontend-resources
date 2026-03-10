@@ -26,24 +26,37 @@ export default function Tickets() {
             setLoading(false);
             return;
         }
+
+        let cancelled = false;
+
+        async function loadTickets() {
+            setLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('tickets')
+                    .select('*')
+                    .eq('user_id', userId!)
+                    .order('created_at', { ascending: false });
+                if (error) console.warn('[Tickets] query error:', error.message);
+                if (!cancelled) {
+                    setTickets(data ?? []);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('[Tickets] loadTickets error:', err);
+                    setLoading(false);
+                }
+            }
+        }
+
         loadTickets();
+        return () => { cancelled = true; };
     }, [userId]);
 
     useEffect(() => {
         if (selected) loadMessages(selected);
     }, [selected]);
-
-    async function loadTickets() {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('tickets')
-            .select('*')
-            .eq('user_id', userId!)
-            .order('created_at', { ascending: false });
-        if (error) console.warn('[Tickets] query error:', error.message);
-        setTickets(data ?? []);
-        setLoading(false);
-    }
 
     async function loadMessages(ticketId: string) {
         const { data, error } = await supabase

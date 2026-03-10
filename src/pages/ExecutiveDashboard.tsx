@@ -1374,59 +1374,66 @@ export default function ExecutiveDashboard() {
   )
 
   useEffect(() => {
-    loadTickets()
-  }, [activeTab])
+    let cancelled = false
 
-  async function loadTickets() {
-    setLoading(true)
-    try {
-      const dbStatus = activeTab === "self_cancelled" ? "rejected" : activeTab
-      const { data } = await supabase
-        .from("tickets")
-        .select("*, users!tickets_user_id_fkey(full_name, email, cpf, phone)")
-        .eq("status", dbStatus)
-        .order("created_at", { ascending: false })
+    async function loadTickets() {
+      setLoading(true)
+      try {
+        const dbStatus = activeTab === "self_cancelled" ? "rejected" : activeTab
+        const { data } = await supabase
+          .from("tickets")
+          .select("*, users!tickets_user_id_fkey(full_name, email, cpf, phone)")
+          .eq("status", dbStatus)
+          .order("created_at", { ascending: false })
 
-      let result = data ?? []
+        if (cancelled) return
 
-      // Separar auto-encerrados dos rejeitados pelo executivo
-      if (activeTab === "self_cancelled" || activeTab === "rejected") {
-        const ticketIds = result.map((t) => t.id)
-        if (ticketIds.length > 0) {
-          const { data: histEntries } = await supabase
-            .from("ticket_history")
-            .select("ticket_id, performed_by")
-            .in("ticket_id", ticketIds)
-            .eq("action", "rejected")
-            .order("created_at", { ascending: false })
+        let result = data ?? []
 
-          // Pegar o performed_by mais recente de cada ticket
-          const latestPerformer = new Map<string, string>()
-          for (const h of histEntries ?? []) {
-            if (!latestPerformer.has(h.ticket_id)) {
-              latestPerformer.set(h.ticket_id, h.performed_by)
+        // Separar auto-encerrados dos rejeitados pelo executivo
+        if (activeTab === "self_cancelled" || activeTab === "rejected") {
+          const ticketIds = result.map((t) => t.id)
+          if (ticketIds.length > 0) {
+            const { data: histEntries } = await supabase
+              .from("ticket_history")
+              .select("ticket_id, performed_by")
+              .in("ticket_id", ticketIds)
+              .eq("action", "rejected")
+              .order("created_at", { ascending: false })
+
+            if (cancelled) return
+
+            // Pegar o performed_by mais recente de cada ticket
+            const latestPerformer = new Map<string, string>()
+            for (const h of histEntries ?? []) {
+              if (!latestPerformer.has(h.ticket_id)) {
+                latestPerformer.set(h.ticket_id, h.performed_by)
+              }
+            }
+
+            if (activeTab === "self_cancelled") {
+              result = result.filter(
+                (t) => latestPerformer.get(t.id) === t.user_id,
+              )
+            } else {
+              result = result.filter(
+                (t) => latestPerformer.get(t.id) !== t.user_id,
+              )
             }
           }
-
-          if (activeTab === "self_cancelled") {
-            result = result.filter(
-              (t) => latestPerformer.get(t.id) === t.user_id,
-            )
-          } else {
-            result = result.filter(
-              (t) => latestPerformer.get(t.id) !== t.user_id,
-            )
-          }
         }
-      }
 
-      setTickets(result)
-    } catch (err) {
-      console.error("[ExecutiveDashboard] loadTickets error:", err)
-    } finally {
-      setLoading(false)
+        setTickets(result)
+      } catch (err) {
+        if (!cancelled) console.error("[ExecutiveDashboard] loadTickets error:", err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-  }
+
+    loadTickets()
+    return () => { cancelled = true }
+  }, [activeTab])
 
   const filtered = tickets.filter((t) => {
     const q = search.toLowerCase().trim()

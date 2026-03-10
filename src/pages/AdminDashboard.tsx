@@ -87,26 +87,29 @@ export default function AdminDashboard() {
     const [userModalRole, setUserModalRole] = useState('');
 
     useEffect(() => {
-        loadData();
-    }, []);
+        let cancelled = false;
 
-    async function loadData() {
-        setLoading(true);
-        try {
-            await Promise.all([
-                loadUsers(),
-                loadPeriodos(),
-                loadInstituicoes(),
-                loadCidades(),
-                loadCursos(),
-                loadSettings(),
-            ]);
-        } catch (err) {
-            console.error('[AdminDashboard] loadData error:', err);
-        } finally {
-            setLoading(false);
+        async function doLoad() {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    loadUsers(),
+                    loadPeriodos(),
+                    loadInstituicoes(),
+                    loadCidades(),
+                    loadCursos(),
+                    loadSettings(),
+                ]);
+            } catch (err) {
+                if (!cancelled) console.error('[AdminDashboard] loadData error:', err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
         }
-    }
+
+        doLoad();
+        return () => { cancelled = true; };
+    }, []);
 
     async function loadSettings() {
         const { data } = await supabase

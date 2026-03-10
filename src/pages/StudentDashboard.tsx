@@ -929,6 +929,7 @@ export default function StudentDashboard() {
   })
 
   const userId = user?.id ?? session?.user?.id
+  const mountedRef = useRef(true)
 
   const loadData = async () => {
     if (!userId) {
@@ -1070,15 +1071,19 @@ export default function StudentDashboard() {
       // (RLS já filtra, mas garantimos no frontend)
       setTimeline(histData ?? [])
     } catch (err) {
-      console.error("[StudentDashboard] load error:", err)
-      setError("Erro ao carregar dados. Tente recarregar a página.")
+      if (mountedRef.current) {
+        console.error("[StudentDashboard] load error:", err)
+        setError("Erro ao carregar dados. Tente recarregar a página.")
+      }
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }
 
   useEffect(() => {
+    mountedRef.current = true
     loadData()
+    return () => { mountedRef.current = false }
   }, [userId])
 
   // Step 2: Salvar dados educacionais (INSERT ou UPDATE)

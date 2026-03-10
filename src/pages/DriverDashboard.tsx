@@ -124,7 +124,7 @@ export default function DriverDashboard() {
         .select(
           "*, students(*, users(full_name, cpf, phone), cursos(nome), periodos(nome), instituicoes(nome), cidades(nome))",
         )
-        .eq("qr_code", id)
+        .eq("student_id", id)
         .maybeSingle()
 
       if (!cardData) {
