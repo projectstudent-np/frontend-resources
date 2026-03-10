@@ -5,6 +5,7 @@ import { supabase } from '../app/supabase';
 import CommandPalette from './CommandPalette';
 import ProfileSlideout from './ProfileSlideout';
 import './Navbar.css';
+import '../pages/Dashboard.css';
 
 const ROLE_LABELS: Record<string, string> = {
     student: 'Estudante',
@@ -63,6 +64,7 @@ export default function Navbar() {
     const sitePropsRef = useRef<HTMLLIElement>(null);
     const lastScrollY = useRef(0);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [avatarLoading, setAvatarLoading] = useState(true);
 
     const isLoggedIn = !!session;
     const role = user?.role ?? 'student';
@@ -70,8 +72,11 @@ export default function Navbar() {
     const displayName = user?.full_name ?? '';
 
     useEffect(() => {
+        let cancelled = false;
+        setAvatarLoading(true);
+
         async function loadAvatar() {
-            if (!user) { setAvatarUrl(null); return; }
+            if (!user) { setAvatarUrl(null); setAvatarLoading(false); return; }
 
             let path = user.avatar_path;
 
@@ -82,6 +87,7 @@ export default function Navbar() {
                     .select('foto_3x4_path')
                     .eq('user_id', user.id)
                     .maybeSingle();
+                if (cancelled) return;
                 if (student?.foto_3x4_path) path = student.foto_3x4_path;
             }
 
@@ -89,12 +95,13 @@ export default function Navbar() {
                 const { data } = await supabase.storage
                     .from('student-documents')
                     .createSignedUrl(path, 600);
-                if (data?.signedUrl) { setAvatarUrl(data.signedUrl); return; }
+                if (!cancelled && data?.signedUrl) { setAvatarUrl(data.signedUrl); setAvatarLoading(false); return; }
             }
 
-            setAvatarUrl(null);
+            if (!cancelled) { setAvatarUrl(null); setAvatarLoading(false); }
         }
         loadAvatar();
+        return () => { cancelled = true; };
     }, [user?.avatar_path, user?.id]);
 
     useEffect(() => {
@@ -189,7 +196,9 @@ export default function Navbar() {
                                         aria-label="Menu do usuário"
                                     >
                                         <span className="navbar-avatar">
-                                            {avatarUrl ? (
+                                            {avatarLoading ? (
+                                                <span className="skeleton-block" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                                            ) : avatarUrl ? (
                                                 <img src={avatarUrl} alt="" className="navbar-avatar-img" />
                                             ) : (
                                                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -199,7 +208,11 @@ export default function Navbar() {
                                                 </svg>
                                             )}
                                         </span>
-                                        <span className="navbar-user-name">{displayName || formatCPFDisplay(cpf)}</span>
+                                        {avatarLoading ? (
+                                            <span className="skeleton-block" style={{ width: 80, height: 14, borderRadius: 4 }} />
+                                        ) : (
+                                            <span className="navbar-user-name">{displayName || formatCPFDisplay(cpf)}</span>
+                                        )}
                                         <svg className={`navbar-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="7" viewBox="0 0 12 7" fill="none">
                                             <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>

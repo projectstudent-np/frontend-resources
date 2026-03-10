@@ -3,6 +3,7 @@ import { createPortal } from "react-dom"
 import { useAuth } from "../store/AuthContext"
 import { supabase } from "../app/supabase"
 import "./ProfileSlideout.css"
+import "../pages/Dashboard.css"
 
 const ROLE_LABELS: Record<string, string> = {
   student: "Estudante",
@@ -67,6 +68,7 @@ export default function ProfileSlideout({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarLoading, setAvatarLoading] = useState(true)
   const [fieldsLocked, setFieldsLocked] = useState(false)
+  const [fieldsLoading, setFieldsLoading] = useState(true)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [sendingReset, setSendingReset] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -86,6 +88,7 @@ export default function ProfileSlideout({
     if (!open || !user) return
     let cancelled = false
     setAvatarLoading(true)
+    setFieldsLoading(true)
 
     // Defer queries until after slide animation finishes
     const timer = setTimeout(async () => {
@@ -115,7 +118,10 @@ export default function ProfileSlideout({
         .select("id, status")
         .eq("user_id", user.id)
         .maybeSingle()
-      if (cancelled || !student) return
+      if (cancelled || !student) {
+        if (!cancelled) setFieldsLoading(false)
+        return
+      }
 
       const statusLocked =
         !!student.status &&
@@ -131,6 +137,7 @@ export default function ProfileSlideout({
 
       const hasActiveCard = !!card && new Date(card.expires_at) > new Date()
       setFieldsLocked(statusLocked || hasActiveCard)
+      setFieldsLoading(false)
     }, 250)
 
     return () => {
@@ -428,92 +435,115 @@ export default function ProfileSlideout({
           >
             <div className="slideout-separator" />
 
-            <div className="slideout-field-row">
-              <div className="input-group">
-                <label className="input-label" htmlFor="slideout-name">
-                  Nome completo
-                </label>
-                <input
-                  id="slideout-name"
-                  type="text"
-                  className={`input-field${fieldsLocked ? " input-locked" : ""}`}
-                  value={fullName}
-                  disabled={fieldsLocked}
-                  onChange={(e) => {
-                    setFullName(toTitleCase(e.target.value))
-                    setSuccess("")
-                  }}
-                />
-              </div>
-            </div>
+            {fieldsLoading ? (
+              <>
+                <div className="input-group">
+                  <span className="skeleton-block" style={{ width: 120, height: 12, borderRadius: 4 }} />
+                  <span className="skeleton-block" style={{ width: '100%', height: 40, borderRadius: 8, marginTop: 6 }} />
+                </div>
+                <div className="slideout-separator" />
+                <div className="input-group">
+                  <span className="skeleton-block" style={{ width: 50, height: 12, borderRadius: 4 }} />
+                  <span className="skeleton-block" style={{ width: '100%', height: 40, borderRadius: 8, marginTop: 6 }} />
+                </div>
+                <div className="slideout-separator" />
+                <div className="input-group">
+                  <span className="skeleton-block" style={{ width: 70, height: 12, borderRadius: 4 }} />
+                  <span className="skeleton-block" style={{ width: '100%', height: 40, borderRadius: 8, marginTop: 6 }} />
+                </div>
+                <div className="slideout-separator" />
+                <span className="skeleton-block" style={{ width: '100%', height: 40, borderRadius: 8 }} />
+              </>
+            ) : (
+              <>
+                <div className="slideout-field-row">
+                  <div className="input-group">
+                    <label className="input-label" htmlFor="slideout-name">
+                      Nome completo
+                    </label>
+                    <input
+                      id="slideout-name"
+                      type="text"
+                      className={`input-field${fieldsLocked ? " input-locked" : ""}`}
+                      value={fullName}
+                      disabled={fieldsLocked}
+                      onChange={(e) => {
+                        setFullName(toTitleCase(e.target.value))
+                        setSuccess("")
+                      }}
+                    />
+                  </div>
+                </div>
 
-            <div className="slideout-separator" />
+                <div className="slideout-separator" />
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="slideout-email">
-                Email
-              </label>
-              <input
-                id="slideout-email"
-                type="email"
-                className={`input-field${fieldsLocked ? " input-locked" : ""}`}
-                placeholder="seu@email.com"
-                value={email}
-                disabled={fieldsLocked}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  setSuccess("")
-                }}
-              />
-            </div>
+                <div className="input-group">
+                  <label className="input-label" htmlFor="slideout-email">
+                    Email
+                  </label>
+                  <input
+                    id="slideout-email"
+                    type="email"
+                    className={`input-field${fieldsLocked ? " input-locked" : ""}`}
+                    placeholder="seu@email.com"
+                    value={email}
+                    disabled={fieldsLocked}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setSuccess("")
+                    }}
+                  />
+                </div>
 
-            <div className="slideout-separator" />
+                <div className="slideout-separator" />
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="slideout-phone">
-                Telefone
-              </label>
-              <input
-                id="slideout-phone"
-                type="text"
-                inputMode="numeric"
-                className={`input-field${fieldsLocked ? " input-locked" : ""}`}
-                placeholder="(00) 00000-0000"
-                value={formatPhone(phone)}
-                maxLength={15}
-                disabled={fieldsLocked}
-                onChange={(e) => {
-                  setPhone(e.target.value.replace(/\D/g, ""))
-                  setSuccess("")
-                }}
-              />
-            </div>
+                <div className="input-group">
+                  <label className="input-label" htmlFor="slideout-phone">
+                    Telefone
+                  </label>
+                  <input
+                    id="slideout-phone"
+                    type="text"
+                    inputMode="numeric"
+                    className={`input-field${fieldsLocked ? " input-locked" : ""}`}
+                    placeholder="(00) 00000-0000"
+                    value={formatPhone(phone)}
+                    maxLength={15}
+                    disabled={fieldsLocked}
+                    onChange={(e) => {
+                      setPhone(e.target.value.replace(/\D/g, ""))
+                      setSuccess("")
+                    }}
+                  />
+                </div>
 
-            <div className="slideout-separator" />
+                <div className="slideout-separator" />
 
-            <button
-              type="button"
-              className="slideout-reset-btn"
-              disabled={sendingReset}
-              onClick={handleResetPassword}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              {sendingReset
-                ? "Enviando..."
-                : "Enviar email de alteração de senha"}
-            </button>
+                <button
+                  type="button"
+                  className="slideout-reset-btn"
+                  disabled={sendingReset}
+                  onClick={handleResetPassword}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  {sendingReset
+                    ? "Enviando..."
+                    : "Enviar email de alteração de senha"}
+                </button>
+              </>
+            )}
           </form>
         </div>
 
@@ -530,7 +560,7 @@ export default function ProfileSlideout({
             type="submit"
             form="slideout-profile-form"
             className="btn btn-primary"
-            disabled={saving || !hasChanges}
+            disabled={saving || !hasChanges || fieldsLoading}
           >
             {saving ? "Salvando..." : "Salvar"}
           </button>
