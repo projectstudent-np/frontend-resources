@@ -900,6 +900,7 @@ export default function StudentDashboard() {
     null,
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [cardExpiryDate, setCardExpiryDate] = useState<string | null>(null)
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -1014,7 +1015,23 @@ export default function StudentDashboard() {
           const { data: signedData } = await supabase.storage
             .from("student-documents")
             .createSignedUrl(studentData.foto_3x4_path, 600)
-          if (signedData?.signedUrl) setPhotoUrl(signedData.signedUrl)
+          if (signedData?.signedUrl) {
+            setPhotoUrl(signedData.signedUrl)
+            // Pré-converter para data URL (base64) para uso nos PDFs offscreen.
+            // Isso evita problemas de CORS/cacheBust do html-to-image com URLs assinadas.
+            try {
+              const resp = await fetch(signedData.signedUrl)
+              const blob = await resp.blob()
+              const reader = new FileReader()
+              const dataUrl = await new Promise<string>((resolve) => {
+                reader.onloadend = () => resolve(reader.result as string)
+                reader.readAsDataURL(blob)
+              })
+              setPhotoDataUrl(dataUrl)
+            } catch (e) {
+              console.warn("[StudentDashboard] Falha ao converter foto para data URL:", e)
+            }
+          }
         }
 
         const { data: settingsData } = await supabase
@@ -1695,13 +1712,12 @@ export default function StudentDashboard() {
                   </div>
                 </div>
                 <div className="student-card-doc-body">
-                  {photoUrl ? (
+                  {(photoDataUrl || photoUrl) ? (
                     <img
-                      src={photoUrl}
+                      src={photoDataUrl || photoUrl!}
                       alt="Foto 3x4"
                       className="student-card-doc-photo"
                       crossOrigin="anonymous"
-                      onLoad={(e) => (e.currentTarget.dataset.loaded = "true")}
                     />
                   ) : (
                     <div className="student-card-doc-photo-placeholder">
@@ -1845,15 +1861,12 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   <div className="student-card-doc-body">
-                    {photoUrl ? (
+                    {(photoDataUrl || photoUrl) ? (
                       <img
-                        src={photoUrl}
+                        src={photoDataUrl || photoUrl!}
                         alt="Foto 3x4"
                         className="student-card-doc-photo"
                         crossOrigin="anonymous"
-                        onLoad={(e) =>
-                          (e.currentTarget.dataset.loaded = "true")
-                        }
                       />
                     ) : (
                       <div className="student-card-doc-photo-placeholder">
