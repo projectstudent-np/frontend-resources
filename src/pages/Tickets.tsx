@@ -100,7 +100,17 @@ export default function Tickets() {
             <div className="tickets-layout">
                 <div className="tickets-sidebar">
                     {loading ? (
-                        <div className="dashboard-loading" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-3)' }}>
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-100)' }}>
+                                    <span className="skeleton-block" style={{ width: 160, height: 14, display: 'block' }} />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                                        <span className="skeleton-block" style={{ width: 70, height: 22, borderRadius: 11, display: 'block' }} />
+                                        <span className="skeleton-block" style={{ width: 60, height: 12, display: 'block' }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : tickets.length === 0 ? (
                         <p className="empty-note">Nenhum ticket ainda.</p>
                     ) : (

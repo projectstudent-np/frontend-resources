@@ -426,7 +426,29 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && <AdminOverview />}
 
             {loading ? (
-                <div className="dashboard-loading" />
+                <div className="admin-tab-content">
+                    <span className="skeleton-block" style={{ width: 200, height: 20, display: 'block' }} />
+                    <div className="admin-table-wrap" style={{ marginTop: 'var(--space-4)' }}>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    {[120, 180, 100, 80, 100, 80].map((w, i) => (
+                                        <th key={i}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <tr key={i}>
+                                        {[120, 180, 100, 80, 100, 80].map((w, j) => (
+                                            <td key={j}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             ) : (
                 <>
                     {activeTab === 'users' && (
@@ -632,7 +654,10 @@ export default function AdminDashboard() {
                             <div className="user-modal-section">
                                 <label className="user-modal-section-title">Carteirinha estudantil</label>
                                 {userCardLoading ? (
-                                    <div className="dashboard-loading" style={{ minHeight: '40px' }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                        <span className="skeleton-block" style={{ width: 140, height: 14, display: 'block' }} />
+                                        <span className="skeleton-block" style={{ width: 100, height: 14, display: 'block' }} />
+                                    </div>
                                 ) : userCard ? (
                                     <div className="user-modal-card-info">
                                         <div className="user-modal-card-row">

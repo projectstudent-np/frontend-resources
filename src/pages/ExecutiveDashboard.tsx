@@ -628,10 +628,10 @@ function TicketDetailModal({
                             Abrir PDF
                           </a>
                         ) : (
-                          <div
-                            className="dashboard-loading"
-                            style={{ minHeight: 80 }}
-                          />
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, minHeight: 80, justifyContent: "center" }}>
+                            <span className="skeleton-block" style={{ width: 48, height: 48, borderRadius: 8 }} />
+                            <span className="skeleton-block" style={{ width: 60, height: 12, display: "block" }} />
+                          </div>
                         )}
                         <p className="exec-doc-label">{label}</p>
                       </div>
@@ -1481,7 +1481,23 @@ export default function ExecutiveDashboard() {
 
       {/* Content */}
       {loading ? (
-        <div className="dashboard-loading" />
+        <div className="card-list">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="exec-ticket card" style={{ padding: "var(--space-4)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <span className="skeleton-block" style={{ width: 180, height: 16, display: "block" }} />
+                  <span className="skeleton-block" style={{ width: 140, height: 12, display: "block" }} />
+                </div>
+                <span className="skeleton-block" style={{ width: 80, height: 24, borderRadius: 12, display: "block" }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
+                <span className="skeleton-block" style={{ width: 160, height: 12, display: "block" }} />
+                <span className="skeleton-block" style={{ width: 70, height: 12, display: "block" }} />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state card">
           <p className="empty-state-icon">

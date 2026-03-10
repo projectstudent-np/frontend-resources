@@ -329,7 +329,7 @@ export default function ProfileSlideout({
               title={canEditAvatar ? "Alterar foto de perfil" : undefined}
             >
               {avatarLoading ? (
-                <div className="slideout-avatar-shimmer" />
+                <div className="skeleton-block" style={{ width: 96, height: 96, borderRadius: "50%" }} />
               ) : avatarUrl ? (
                 <img
                   src={avatarUrl}

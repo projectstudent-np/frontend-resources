@@ -318,8 +318,17 @@ function StepEducationalData({
 
   if (loadingData) {
     return (
-      <div className="step-card card">
-        <div className="dashboard-loading" />
+      <div className="step-card card" style={{ padding: "var(--space-5)" }}>
+        <span className="skeleton-block" style={{ width: 180, height: 18, display: "block" }} />
+        <span className="skeleton-block" style={{ width: 240, height: 13, display: "block", marginTop: 8 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)", marginTop: "var(--space-5)" }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span className="skeleton-block" style={{ width: 80, height: 12, display: "block" }} />
+              <span className="skeleton-block" style={{ width: "100%", height: 40, display: "block", borderRadius: 8 }} />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -1279,7 +1288,27 @@ export default function StudentDashboard() {
     student.status === "draft" ||
     student.status === "info_requested"
 
-  if (loading) return <div className="dashboard-loading" />
+  if (loading)
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-header">
+          <div>
+            <span className="skeleton-block" style={{ width: 220, height: 24, display: "block" }} />
+            <span className="skeleton-block" style={{ width: 160, height: 14, display: "block", marginTop: 8 }} />
+          </div>
+        </div>
+        <div className="card" style={{ padding: "var(--space-5)" }}>
+          <div style={{ display: "flex", gap: "var(--space-4)" }}>
+            <span className="skeleton-block" style={{ width: 100, height: 120, borderRadius: 8, flexShrink: 0 }} />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+              {[180, 140, 160, 120, 150, 100].map((w, i) => (
+                <span key={i} className="skeleton-block" style={{ width: w, height: 14, display: "block" }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
 
   if (error && !student) {
     return (
