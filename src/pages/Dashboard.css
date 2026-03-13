@@ -2377,6 +2377,16 @@
     align-items: center;
   }
 
+  /* Virtual card (student preview) must keep desktop layout */
+  .student-card-virtual .student-card-doc-body {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .student-card-virtual .student-card-doc-field-label {
+    min-width: 80px;
+  }
+
   .student-card-doc-field-label {
     min-width: 70px;
   }
