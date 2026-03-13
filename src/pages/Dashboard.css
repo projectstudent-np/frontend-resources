@@ -271,6 +271,14 @@
   animation: none;
 }
 
+/* Offscreen / PDF photos must never shimmer (prevents faded capture) */
+.student-card-offscreen .student-card-doc-photo,
+.physical-pdf-page .student-card-doc-photo,
+.digital-pdf-page .student-card-doc-photo {
+  animation: none;
+  opacity: 1;
+}
+
 .student-card-doc-photo-placeholder {
   width: 90px;
   height: 120px;
