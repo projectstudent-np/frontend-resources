@@ -2334,6 +2334,20 @@
     min-width: 500px;
   }
 
+  /* Offscreen / PDF cards must ALWAYS keep desktop layout */
+  .student-card-offscreen .student-card-doc-body,
+  .physical-pdf-page .student-card-doc-body,
+  .digital-pdf-page .student-card-doc-body {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .student-card-offscreen .student-card-doc-field-label,
+  .physical-pdf-page .student-card-doc-field-label,
+  .digital-pdf-page .student-card-doc-field-label {
+    min-width: 80px;
+  }
+
   .validate-card-body {
     flex-direction: column;
     align-items: center;
