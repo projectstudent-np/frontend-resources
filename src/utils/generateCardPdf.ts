@@ -15,7 +15,7 @@ export async function generateCardPdf(element: HTMLElement, fileName: string) {
   const savedOffscreenStyle = offscreen?.getAttribute("style") ?? ""
   if (offscreen) {
     offscreen.style.cssText =
-      "position:fixed;left:0;top:0;z-index:-9999;pointer-events:none;"
+      "position:fixed;left:-9999px;top:0;pointer-events:none;"
   }
 
   // Detect card type

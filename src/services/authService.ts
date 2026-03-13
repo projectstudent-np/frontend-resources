@@ -49,12 +49,22 @@ export const authService = {
      *  Resolves the email from a Supabase RPC, then authenticates with Supabase Auth.
      */
     async loginWithCPF(cpf: string, password: string) {
-        const { data: email, error: lookupError } = await supabase.rpc(
+        // Try raw digits first, then formatted
+        let email: string | null = null;
+        const { data: raw, error: lookupError } = await supabase.rpc(
             'get_email_by_cpf',
             { p_cpf: cpf }
         );
-
         if (lookupError) throw new Error('Error looking up account.');
+        email = raw;
+
+        if (!email) {
+            // Try formatted CPF (XXX.XXX.XXX-XX)
+            const formatted = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            const { data: fmt } = await supabase.rpc('get_email_by_cpf', { p_cpf: formatted });
+            email = fmt;
+        }
+
         if (!email) throw new Error('No account found with this CPF.');
 
         const { data, error } = await supabase.auth.signInWithPassword({

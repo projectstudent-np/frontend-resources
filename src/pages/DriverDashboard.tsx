@@ -55,7 +55,6 @@ interface ValidateResult {
 
 export default function DriverDashboard() {
   usePageTitle("Motorista")
-  const [qrValue, setQrValue] = useState("")
   const [result, setResult] = useState<ValidateResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -173,19 +172,9 @@ export default function DriverDashboard() {
     }
   }
 
-  const handleManualValidate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!qrValue.trim()) {
-      setError("Insira o valor do QR Code.")
-      return
-    }
-    await handleValidateByUrl(qrValue)
-  }
-
   const resetScanner = () => {
     setResult(null)
     setError("")
-    setQrValue("")
     setScannerActive(true)
   }
 
@@ -215,39 +204,12 @@ export default function DriverDashboard() {
         </div>
       )}
 
-      {/* Divider */}
-      {scannerActive && <div className="scanner-divider">ou</div>}
-
-      {/* Input manual */}
-      <div className="form-card card">
-        <form onSubmit={handleManualValidate} className="auth-form">
-          <div className="input-group">
-            <label className="input-label" htmlFor="qr">
-              Código manual
-            </label>
-            <input
-              id="qr"
-              type="text"
-              className="input-field"
-              placeholder="Cole o conteúdo do QR Code ou UUID"
-              value={qrValue}
-              onChange={(e) => {
-                setQrValue(e.target.value)
-                setResult(null)
-                setError("")
-              }}
-            />
-          </div>
-          {error && <p className="auth-error">{error}</p>}
-          <button
-            type="submit"
-            className="btn btn-primary auth-btn"
-            disabled={loading}
-          >
-            {loading ? "Validando..." : "Validar Carteirinha"}
-          </button>
-        </form>
-      </div>
+      {/* Error message (from QR scan) */}
+      {error && (
+        <div className="card" style={{ padding: "var(--space-4)" }}>
+          <p className="auth-error">{error}</p>
+        </div>
+      )}
 
       {/* Resultado */}
       {loading && (

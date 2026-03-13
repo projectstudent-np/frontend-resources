@@ -101,6 +101,7 @@ function JustificationDialog({
   onConfirm,
   onCancel,
   loading,
+  templates,
 }: {
   title: string
   description: string
@@ -109,6 +110,7 @@ function JustificationDialog({
   onConfirm: (text: string) => void
   onCancel: () => void
   loading: boolean
+  templates?: string[]
 }) {
   const [text, setText] = useState("")
   return (
@@ -119,6 +121,22 @@ function JustificationDialog({
       >
         <h2 className="justification-dialog-title">{title}</h2>
         <p className="justification-dialog-desc">{description}</p>
+        {/* Feature 5: Message templates */}
+        {templates && templates.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+            {templates.map((tpl, i) => (
+              <button
+                key={i}
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ fontSize: "var(--text-xs)", textAlign: "left" }}
+                onClick={() => setText((prev) => prev ? `${prev}\n${tpl}` : tpl)}
+              >
+                {tpl}
+              </button>
+            ))}
+          </div>
+        )}
         <textarea
           className="justification-textarea"
           placeholder="Digite a justificativa..."
@@ -1240,6 +1258,7 @@ function TicketDetailModal({
           onConfirm={handleRequestInfo}
           onCancel={() => setJustDialog(null)}
           loading={actionLoading}
+          templates={MESSAGE_TEMPLATES}
         />
       )}
 
@@ -1359,19 +1378,106 @@ function TicketDetailModal({
   )
 }
 
+/* ─────── Message Templates ────────────────── */
+const MESSAGE_TEMPLATES = [
+  "Envie um comprovante de matrícula atualizado.",
+  "A foto enviada está ilegível. Envie uma nova foto 3x4.",
+  "Envie um documento de identidade (frente e verso).",
+  "Informações do curso estão incorretas. Atualize seus dados educacionais.",
+]
+
 /* ─────────────────── Main ──────────────────── */
 export default function ExecutiveDashboard() {
   usePageTitle("Executivo")
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const currentUserId = user?.id ?? ""
 
   const [tickets, setTickets] = useState<TicketWithUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [activeTab, setActiveTab] = useState<TabKey>("open")
   const [search, setSearch] = useState("")
   const [selectedTicket, setSelectedTicket] = useState<TicketWithUser | null>(
     null,
   )
+
+  /* Feature 2: Batch approval */
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [batchLoading, setBatchLoading] = useState(false)
+
+  /* Feature 3: Advanced filters */
+  const [filterInstitution, setFilterInstitution] = useState("")
+  const [filterCourse, setFilterCourse] = useState("")
+  const [filterCity, setFilterCity] = useState("")
+  const [lookupInstitutions, setLookupInstitutions] = useState<{ id: string; nome: string }[]>([])
+  const [lookupCourses, setLookupCourses] = useState<{ id: string; nome: string }[]>([])
+  const [lookupCities, setLookupCities] = useState<{ id: string; nome: string }[]>([])
+  const [studentsMap, setStudentsMap] = useState<Map<string, { status: string; instituicao_id: string; curso_id: string; cidade_id: string }>>(new Map())
+
+  /* Feature 6: Priority queue */
+  const [priorityMode, setPriorityMode] = useState(false)
+
+  /* Load lookup data for filters + students map */
+  useEffect(() => {
+    async function loadLookups() {
+      const token = session?.access_token
+      const [instRes, courseRes, cityRes] = await Promise.all([
+        supabase.from("instituicoes").select("id, nome").order("nome"),
+        supabase.from("cursos").select("id, nome").order("nome"),
+        supabase.from("cidades").select("id, nome").order("nome"),
+      ])
+      setLookupInstitutions(instRes.data ?? [])
+      setLookupCourses(courseRes.data ?? [])
+      setLookupCities(cityRes.data ?? [])
+
+      /* Load students via backend API (bypasses RLS) */
+      if (token) {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/students`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          })
+          const json = await res.json()
+          if (json.success) {
+            const map = new Map<string, { status: string; instituicao_id: string; curso_id: string; cidade_id: string }>()
+            for (const s of json.data ?? []) {
+              map.set(s.user_id, { status: s.status, instituicao_id: s.instituicao_id, curso_id: s.curso_id, cidade_id: s.cidade_id })
+            }
+            setStudentsMap(map)
+          }
+        } catch (err) {
+          console.error("[ExecutiveDashboard] loadStudents error:", err)
+        }
+      }
+    }
+    loadLookups()
+  }, [session?.access_token, refreshKey])
+
+  /* Batch status update */
+  async function handleBatchStatus(status: string) {
+    if (selectedIds.length === 0) return
+    setBatchLoading(true)
+    try {
+      const token = session?.access_token
+      if (!token) return
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/tickets/batch-status`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: selectedIds, status }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setSelectedIds([])
+        setRefreshKey((k) => k + 1)
+      }
+    } catch (err) {
+      console.error("[ExecutiveDashboard] handleBatchStatus error:", err)
+    } finally {
+      setBatchLoading(false)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -1423,6 +1529,15 @@ export default function ExecutiveDashboard() {
           }
         }
 
+        /* Feature 6: Priority queue — card_creation first, then oldest */
+        if (priorityMode) {
+          result.sort((a, b) => {
+            if (a.type === "card_creation" && b.type !== "card_creation") return -1
+            if (a.type !== "card_creation" && b.type === "card_creation") return 1
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          })
+        }
+
         setTickets(result)
       } catch (err) {
         if (!cancelled) console.error("[ExecutiveDashboard] loadTickets error:", err)
@@ -1433,17 +1548,35 @@ export default function ExecutiveDashboard() {
 
     loadTickets()
     return () => { cancelled = true }
+  }, [activeTab, refreshKey, priorityMode])
+
+  /* Clear batch selection on tab change */
+  useEffect(() => {
+    setSelectedIds([])
   }, [activeTab])
 
   const filtered = tickets.filter((t) => {
+    /* Text search */
     const q = search.toLowerCase().trim()
-    if (!q) return true
-    const num = `#${t.ticket_number}`
-    return (
-      num.includes(q) ||
-      (t.users?.full_name?.toLowerCase().includes(q) ?? false) ||
-      (t.users?.email?.toLowerCase().includes(q) ?? false)
-    )
+    if (q) {
+      const num = `#${t.ticket_number}`
+      const matchesSearch =
+        num.includes(q) ||
+        (t.users?.full_name?.toLowerCase().includes(q) ?? false) ||
+        (t.users?.email?.toLowerCase().includes(q) ?? false)
+      if (!matchesSearch) return false
+    }
+
+    /* Advanced filters (student data) */
+    if (filterInstitution || filterCourse || filterCity) {
+      const student = studentsMap.get(t.user_id)
+      if (!student) return false
+      if (filterInstitution && student.instituicao_id !== filterInstitution) return false
+      if (filterCourse && student.curso_id !== filterCourse) return false
+      if (filterCity && student.cidade_id !== filterCity) return false
+    }
+
+    return true
   })
 
   return (
@@ -1457,7 +1590,7 @@ export default function ExecutiveDashboard() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search + Priority toggle */}
       <div className="admin-toolbar">
         <div className="admin-search">
           <input
@@ -1468,9 +1601,70 @@ export default function ExecutiveDashboard() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <span className="admin-count">
-          {filtered.length} ticket{filtered.length !== 1 ? "s" : ""}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+          {/* Feature 6: Priority queue toggle */}
+          <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--text-sm)", color: "var(--gray-600)", cursor: "pointer", whiteSpace: "nowrap" }}>
+            <input
+              type="checkbox"
+              className="exec-checkbox"
+              checked={priorityMode}
+              onChange={(e) => setPriorityMode(e.target.checked)}
+            />
+            Prioridade
+          </label>
+          <span className="admin-count">
+            {filtered.length} ticket{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+
+      {/* Feature 3: Advanced filters */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+        <select
+          className="input-field"
+          value={filterInstitution}
+          onChange={(e) => setFilterInstitution(e.target.value)}
+          style={{ flex: "1 1 160px", maxWidth: 220 }}
+        >
+          <option value="">Todas as instituições</option>
+          {lookupInstitutions.map((inst) => (
+            <option key={inst.id} value={inst.id}>{inst.nome}</option>
+          ))}
+        </select>
+        <select
+          className="input-field"
+          value={filterCourse}
+          onChange={(e) => setFilterCourse(e.target.value)}
+          style={{ flex: "1 1 160px", maxWidth: 220 }}
+        >
+          <option value="">Todos os cursos</option>
+          {lookupCourses.map((c) => (
+            <option key={c.id} value={c.id}>{c.nome}</option>
+          ))}
+        </select>
+        <select
+          className="input-field"
+          value={filterCity}
+          onChange={(e) => setFilterCity(e.target.value)}
+          style={{ flex: "1 1 160px", maxWidth: 220 }}
+        >
+          <option value="">Todas as cidades</option>
+          {lookupCities.map((c) => (
+            <option key={c.id} value={c.id}>{c.nome}</option>
+          ))}
+        </select>
+        {(filterInstitution || filterCourse || filterCity) && (
+          <button
+            className="btn btn-tertiary btn-sm"
+            onClick={() => {
+              setFilterInstitution("")
+              setFilterCourse("")
+              setFilterCity("")
+            }}
+          >
+            Limpar filtros
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -1486,7 +1680,35 @@ export default function ExecutiveDashboard() {
         ))}
       </div>
 
-      {/* Content */}
+      {/* Feature 2: Batch action bar */}
+      {selectedIds.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-3) var(--space-4)", background: "var(--brand-25)", border: "1px solid var(--brand-100)", borderRadius: "var(--radius-md)", marginBottom: "var(--space-4)" }}>
+          <span style={{ fontSize: "var(--text-sm)", color: "var(--gray-700)", fontWeight: 500 }}>
+            {selectedIds.length} selecionado{selectedIds.length !== 1 ? "s" : ""}
+          </span>
+          <button
+            className="btn btn-primary btn-sm"
+            disabled={batchLoading}
+            onClick={() => handleBatchStatus("approved")}
+          >
+            {batchLoading ? "Processando..." : "Aprovar selecionados"}
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            disabled={batchLoading}
+            onClick={() => handleBatchStatus("rejected")}
+          >
+            {batchLoading ? "Processando..." : "Rejeitar selecionados"}
+          </button>
+          <button
+            className="btn btn-tertiary btn-sm"
+            onClick={() => setSelectedIds([])}
+          >
+            Limpar seleção
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div className="card-list">
           {[1, 2, 3, 4].map((i) => (
@@ -1534,35 +1756,69 @@ export default function ExecutiveDashboard() {
         </div>
       ) : (
         <div className="card-list">
+          {/* Feature 2: Select all checkbox */}
+          <div className="exec-select-all">
+            <input
+              type="checkbox"
+              className="exec-checkbox"
+              checked={filtered.length > 0 && selectedIds.length === filtered.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedIds(filtered.map((t) => t.id))
+                } else {
+                  setSelectedIds([])
+                }
+              }}
+            />
+            <span>Selecionar todos</span>
+          </div>
           {filtered.map((ticket) => (
             <div
               key={ticket.id}
               className="exec-ticket card clickable"
-              onClick={() => setSelectedTicket(ticket)}
+              style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-3)" }}
             >
-              <div className="exec-ticket-header">
-                <div>
-                  <p className="exec-ticket-user">
-                    <span className="exec-ticket-number">
-                      #{ticket.ticket_number}
-                    </span>{" "}
-                    {ticket.users?.full_name ?? "Desconhecido"}
-                  </p>
-                  <p className="exec-ticket-email">{ticket.users?.email}</p>
+              {/* Feature 2: Row checkbox */}
+              <input
+                type="checkbox"
+                className="exec-checkbox"
+                checked={selectedIds.includes(ticket.id)}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  setSelectedIds((prev) =>
+                    prev.includes(ticket.id)
+                      ? prev.filter((id) => id !== ticket.id)
+                      : [...prev, ticket.id]
+                  )
+                }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ marginTop: 3 }}
+              />
+              <div style={{ flex: 1, minWidth: 0 }} onClick={() => setSelectedTicket(ticket)}>
+                <div className="exec-ticket-header">
+                  <div>
+                    <p className="exec-ticket-user">
+                      <span className="exec-ticket-number">
+                        #{ticket.ticket_number}
+                      </span>{" "}
+                      {ticket.users?.full_name ?? "Desconhecido"}
+                    </p>
+                    <p className="exec-ticket-email">{ticket.users?.email}</p>
+                  </div>
+                  <span className={`badge ${statusBadge[ticket.status]}`}>
+                    {statusLabel[ticket.status] ?? ticket.status}
+                  </span>
                 </div>
-                <span className={`badge ${statusBadge[ticket.status]}`}>
-                  {statusLabel[ticket.status] ?? ticket.status}
-                </span>
-              </div>
-              <div className="exec-ticket-info">
-                <span className="ticket-type">
-                  {ticket.type === "card_creation"
-                    ? "Solicitação de Carteirinha"
-                    : "Pergunta"}
-                </span>
-                <span className="ticket-date">
-                  {formatDate(ticket.created_at)}
-                </span>
+                <div className="exec-ticket-info">
+                  <span className="ticket-type">
+                    {ticket.type === "card_creation"
+                      ? "Solicitação de Carteirinha"
+                      : "Pergunta"}
+                  </span>
+                  <span className="ticket-date">
+                    {formatDate(ticket.created_at)}
+                  </span>
+                </div>
               </div>
             </div>
           ))}
@@ -1575,7 +1831,7 @@ export default function ExecutiveDashboard() {
           ticket={selectedTicket}
           currentUserId={currentUserId}
           onClose={() => setSelectedTicket(null)}
-          onActionDone={loadTickets}
+          onActionDone={() => setRefreshKey((k) => k + 1)}
         />
       )}
     </div>

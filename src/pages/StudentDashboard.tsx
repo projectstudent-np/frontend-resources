@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { useAuth } from "../store/AuthContext"
 import { supabase } from "../app/supabase"
 import { generateCardPdf } from "../utils/generateCardPdf"
@@ -903,6 +904,10 @@ export default function StudentDashboard() {
   const [cancelCpf, setCancelCpf] = useState("")
   const [cancelLoading, setCancelLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showUpdateDocs, setShowUpdateDocs] = useState(false)
+  const [showChamadaModal, setShowChamadaModal] = useState(false)
+  const [updateDocsLoading, setUpdateDocsLoading] = useState(false)
+  const [successMsg, setSuccessMsg] = useState("")
 
   // Carteirinha state (approved)
   const [studentFull, setStudentFull] = useState<Record<string, any> | null>(
@@ -1171,6 +1176,50 @@ export default function StudentDashboard() {
     } finally {
       setCancelLoading(false)
     }
+  }
+
+  async function handleUpdateDocs() {
+    if (!user || !student) return
+    setUpdateDocsLoading(true)
+    try {
+      const token = session?.access_token
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/students/me/update-request`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      const json = await res.json()
+      if (json.success) {
+        window.location.reload()
+      }
+    } catch {
+      /* silencioso */
+    } finally {
+      setUpdateDocsLoading(false)
+    }
+  }
+
+  function handleSaveOffline() {
+    if (!user || !student || !studentFull) return
+    const offlineData = {
+      studentName: user.full_name,
+      cpf: user.cpf,
+      phone: user.phone,
+      course: (studentFull as any)?.cursos?.nome,
+      period: (studentFull as any)?.periodos?.nome,
+      institution: (studentFull as any)?.instituicoes?.nome,
+      city: (studentFull as any)?.cidades?.nome,
+      studentIdNumber: student.student_id_number,
+      photoDataUrl,
+      qrCodeDataUrl,
+      cardExpiryDate,
+      savedAt: new Date().toISOString(),
+    }
+    localStorage.setItem("npmg_offline_card", JSON.stringify(offlineData))
+    setSuccessMsg("Carteirinha salva para uso offline!")
+    setTimeout(() => setSuccessMsg(""), 4000)
   }
 
   // Reenviar para análise após auto-encerramento
@@ -1537,14 +1586,99 @@ export default function StudentDashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
               </svg>
-              <span>Configurações</span>
+              <span>Apagar carteirinha</span>
+            </button>
+            <button
+              className={`card-action-btn${showUpdateDocs ? " card-action-btn--active" : ""}`}
+              onClick={() => setShowUpdateDocs((v) => !v)}
+            >
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span>Atualizar dados</span>
+            </button>
+            <button
+              className="card-action-btn"
+              onClick={handleSaveOffline}
+            >
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+              <span>Salvar offline</span>
+            </button>
+            <button
+              className="card-action-btn"
+              onClick={() => setShowChamadaModal(true)}
+            >
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                <line x1="9" y1="12" x2="15" y2="12" />
+                <line x1="9" y1="16" x2="13" y2="16" />
+              </svg>
+              <span>Lista de Chamada</span>
             </button>
           </div>
 
-          {/* Configurações (toggle) */}
+          {/* Modal Chamada — portal to body so it centers on screen */}
+          {showChamadaModal && createPortal(
+            <div className="modal-overlay" onClick={() => setShowChamadaModal(false)}>
+              <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                <div className="chamada-modal-content">
+                  <span className="chamada-modal-emoji">👨‍💻</span>
+                  <p className="chamada-modal-text">
+                    Função será implementada após verificação
+                  </p>
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-4)" }}>
+                  <button
+                    className="btn btn-secondary btn-md"
+                    onClick={() => setShowChamadaModal(false)}
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )}
+
+          {/* Apagar carteirinha (toggle) */}
           {showSettings && (
             <div className="card-settings-section">
               <h3 className="card-settings-title">
@@ -1558,13 +1692,13 @@ export default function StudentDashboard() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
-                Configurações da Carteirinha
+                Apagar carteirinha
               </h3>
               <p className="card-settings-desc">
-                Para encerrar sua carteirinha, confirme digitando seu CPF.
+                Essa ação é irreversível. Sua carteirinha será cancelada e você precisará solicitar uma nova. Para confirmar, digite seu CPF abaixo.
               </p>
               <div className="card-settings-row">
                 <input
@@ -1590,6 +1724,61 @@ export default function StudentDashboard() {
                   )}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Atualizar dados (toggle) */}
+          {showUpdateDocs && (
+            <div className="card-settings-section">
+              <h3 className="card-settings-title">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Atualizar dados
+              </h3>
+              <p className="card-settings-desc">
+                Ao atualizar seus dados, sua carteirinha será suspensa até que a nova solicitação seja aprovada novamente. Você precisará reenviar seus documentos e aguardar a análise.
+              </p>
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={updateDocsLoading}
+                onClick={handleUpdateDocs}
+                style={{ marginTop: "var(--space-3)" }}
+              >
+                {updateDocsLoading ? "Processando..." : "Confirmar atualização"}
+              </button>
+            </div>
+          )}
+
+          {successMsg && (
+            <div
+              className="alert alert-success"
+              style={{ marginBottom: "var(--space-4)", alignItems: "center" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <span style={{ flex: 1 }}>{successMsg}</span>
+              <button
+                onClick={() => setSuccessMsg("")}
+                aria-label="Fechar"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "var(--space-1)", color: "inherit", lineHeight: 0 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
           )}
 

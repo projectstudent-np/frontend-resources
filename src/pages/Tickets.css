@@ -1,53 +1,87 @@
 /* ===== Tickets Page ===== */
+
+/* ── Layout ─────────────────────────────────────── */
 .tickets-layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 300px 1fr;
     gap: var(--space-6);
     min-height: 560px;
+    animation: fadeInUp 0.5s var(--ease-out-expo) both;
 }
 
+/* ── Sidebar ────────────────────────────────────── */
 .tickets-sidebar {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    overflow-y: auto;
+    max-height: 600px;
+    padding-right: var(--space-1);
+}
+
+.tickets-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tickets-sidebar::-webkit-scrollbar-thumb {
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
 }
 
 .ticket-sidebar-item {
     background: var(--color-surface);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    padding: var(--space-4);
+    padding: var(--space-4) var(--space-5);
     text-align: left;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all var(--transition-fast);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     box-shadow: var(--shadow-xs);
+    font-family: var(--font-family);
 }
 
 .ticket-sidebar-item:hover {
-    border-color: var(--brand-300);
+    border-color: var(--brand-200);
+    background: var(--brand-25);
     box-shadow: var(--shadow-sm);
 }
 
 .ticket-sidebar-item.active {
-    border-color: var(--brand-600);
+    border-color: var(--brand-500);
     background: var(--brand-25);
-    box-shadow: 0 0 0 1px var(--brand-600);
+    box-shadow: 0 0 0 1px var(--brand-500), var(--shadow-sm);
 }
 
 .ticket-sidebar-meta {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-2);
 }
 
+.ticket-type {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-800);
+    line-height: 1.4;
+}
+
+.ticket-date {
+    font-size: var(--text-xs);
+    color: var(--gray-400);
+    white-space: nowrap;
+}
+
+/* ── Chat Area ──────────────────────────────────── */
 .tickets-chat {
     display: flex;
     flex-direction: column;
     padding: 0;
     overflow: hidden;
+    min-height: 480px;
 }
 
 .tickets-empty {
@@ -56,39 +90,63 @@
     align-items: center;
     justify-content: center;
     height: 100%;
+    min-height: 480px;
     color: var(--gray-400);
-    font-size: var(--text-md);
+    font-size: var(--text-sm);
     gap: var(--space-3);
+    padding: var(--space-10);
+    text-align: center;
+    line-height: 1.6;
 }
 
+.tickets-empty p:first-child {
+    font-size: var(--display-xs);
+}
+
+/* ── Chat Header ────────────────────────────────── */
 .tickets-chat-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-4);
     padding: var(--space-4) var(--space-6);
     border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-25);
 }
 
+/* ── Messages ───────────────────────────────────── */
 .tickets-messages {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-4) var(--space-6);
+    padding: var(--space-5) var(--space-6);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    min-height: 360px;
+    min-height: 320px;
 }
 
+.tickets-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tickets-messages::-webkit-scrollbar-thumb {
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+}
+
+/* ── Message Bubble ─────────────────────────────── */
 .message-bubble {
-    max-width: 75%;
-    border-radius: var(--radius-lg);
+    max-width: 72%;
+    border-radius: var(--radius-xl);
     padding: var(--space-3) var(--space-4);
+    animation: fadeInUp 0.3s var(--ease-out-expo) both;
 }
 
 .message-bubble.mine {
     align-self: flex-end;
     background: var(--brand-600);
     color: #fff;
+    border-bottom-right-radius: var(--radius-xs);
 }
 
 .message-bubble.theirs {
@@ -96,33 +154,108 @@
     background: var(--gray-50);
     border: 1px solid var(--gray-200);
     color: var(--gray-900);
+    border-bottom-left-radius: var(--radius-xs);
 }
 
 .message-text {
     font-size: var(--text-sm);
-    line-height: 1.5;
+    line-height: 1.6;
+    word-break: break-word;
 }
 
 .message-time {
     font-size: var(--text-xs);
     margin-top: var(--space-1);
-    opacity: 0.65;
+    opacity: 0.6;
     text-align: right;
+    line-height: 1;
 }
 
+/* ── Input Row ──────────────────────────────────── */
 .tickets-input-row {
     display: flex;
+    align-items: center;
     gap: var(--space-3);
-    padding: var(--space-4) var(--space-6);
+    padding: var(--space-5) var(--space-6);
     border-top: 1px solid var(--gray-200);
+    background: var(--gray-25);
 }
 
 .tickets-input-row .input-field {
     flex: 1;
 }
 
+/* ── Empty Note ─────────────────────────────────── */
+.empty-note {
+    font-size: var(--text-sm);
+    color: var(--gray-400);
+    text-align: center;
+    padding: var(--space-6);
+}
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 900px) {
+    .tickets-layout {
+        grid-template-columns: 260px 1fr;
+        gap: var(--space-4);
+    }
+}
+
 @media (max-width: 768px) {
     .tickets-layout {
         grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .tickets-sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: visible;
+        max-height: none;
+        padding-right: 0;
+        padding-bottom: var(--space-2);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ticket-sidebar-item {
+        min-width: 220px;
+        flex-shrink: 0;
+    }
+
+    .tickets-chat {
+        min-height: 400px;
+    }
+
+    .tickets-empty {
+        min-height: 320px;
+        padding: var(--space-6);
+    }
+
+    .tickets-chat-header {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .tickets-messages {
+        padding: var(--space-4);
+        min-height: 260px;
+    }
+
+    .tickets-input-row {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .message-bubble {
+        max-width: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .ticket-sidebar-item {
+        padding: var(--space-3) var(--space-4);
+        min-width: 200px;
+    }
+
+    .message-bubble {
+        max-width: 90%;
     }
 }
