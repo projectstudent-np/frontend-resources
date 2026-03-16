@@ -527,6 +527,7 @@ function StepAttachments({
   const [uploading, setUploading] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({})
+  const [pdfKeys, setPdfKeys] = useState<Set<string>>(new Set())
 
   // Gerar signed URLs para preview dos arquivos existentes
   useEffect(() => {
@@ -541,8 +542,9 @@ function StepAttachments({
         const { data } = await supabase.storage
           .from("student-documents")
           .createSignedUrl(path, 600)
-        if (data?.signedUrl)
+        if (data?.signedUrl) {
           setPreviewUrls((prev) => ({ ...prev, [key]: data.signedUrl }))
+        }
       }
     })
   }, [])
@@ -583,6 +585,12 @@ function StepAttachments({
         .upload(path, file, { upsert: true })
       if (uploadError) throw uploadError
       setFiles((prev) => ({ ...prev, [key]: path }))
+      // Marcar se é PDF
+      if (file.type === "application/pdf") {
+        setPdfKeys((prev) => new Set(prev).add(key))
+      } else {
+        setPdfKeys((prev) => { const n = new Set(prev); n.delete(key); return n })
+      }
       // Gerar preview URL do novo arquivo
       const { data: signedData } = await supabase.storage
         .from("student-documents")
@@ -674,11 +682,19 @@ function StepAttachments({
             )}
             {previewUrls.foto_3x4 && (
               <div className="upload-preview">
-                <img
-                  src={previewUrls.foto_3x4}
-                  alt="Preview foto 3x4"
-                  className="upload-preview-img"
-                />
+                {pdfKeys.has("foto_3x4") ? (
+                  <div className="upload-preview-pdf">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600, #DC2626)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>PDF</span>
+                  </div>
+                ) : (
+                  <img
+                    src={previewUrls.foto_3x4}
+                    alt="Preview foto 3x4"
+                    className="upload-preview-img"
+                    onError={() => setPdfKeys((prev) => new Set(prev).add("foto_3x4"))}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -760,11 +776,19 @@ function StepAttachments({
             )}
             {previewUrls.comprovante_matricula && (
               <div className="upload-preview">
-                <img
-                  src={previewUrls.comprovante_matricula}
-                  alt="Preview comprovante"
-                  className="upload-preview-img"
-                />
+                {pdfKeys.has("comprovante_matricula") ? (
+                  <div className="upload-preview-pdf">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600, #DC2626)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>PDF</span>
+                  </div>
+                ) : (
+                  <img
+                    src={previewUrls.comprovante_matricula}
+                    alt="Preview comprovante"
+                    className="upload-preview-img"
+                    onError={() => setPdfKeys((prev) => new Set(prev).add("comprovante_matricula"))}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -836,11 +860,19 @@ function StepAttachments({
             )}
             {previewUrls.documento_identidade && (
               <div className="upload-preview">
-                <img
-                  src={previewUrls.documento_identidade}
-                  alt="Preview documento"
-                  className="upload-preview-img"
-                />
+                {pdfKeys.has("documento_identidade") ? (
+                  <div className="upload-preview-pdf">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600, #DC2626)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span>PDF</span>
+                  </div>
+                ) : (
+                  <img
+                    src={previewUrls.documento_identidade}
+                    alt="Preview documento"
+                    className="upload-preview-img"
+                    onError={() => setPdfKeys((prev) => new Set(prev).add("documento_identidade"))}
+                  />
+                )}
               </div>
             )}
           </div>
