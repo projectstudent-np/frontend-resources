@@ -313,24 +313,43 @@ function TicketDetailModal({
       .update({ status: "approved" })
       .eq("user_id", ticket.user_id)
 
-    // Criar student_card se não existir
+    // Criar ou reativar student_card
     if (studentData) {
-      const { data: existing } = await supabase
+      const { data: activeCard } = await supabase
         .from("student_cards")
         .select("id")
         .eq("student_id", studentData.id)
         .eq("status", "active")
         .maybeSingle()
 
-      if (!existing) {
-        await supabase.from("student_cards").insert({
-          student_id: studentData.id,
-          issue_number: `MUNP-${Date.now()}`,
-          status: "active",
-          issued_at: new Date().toISOString(),
-          expires_at: `${expiryDate}T23:59:59Z`,
-          qr_code: studentData.id,
-        })
+      if (!activeCard) {
+        // Tentar reativar card pendente existente (ex: após requestUpdate)
+        const { data: pendingCard } = await supabase
+          .from("student_cards")
+          .select("id")
+          .eq("student_id", studentData.id)
+          .eq("status", "pending")
+          .maybeSingle()
+
+        if (pendingCard) {
+          await supabase
+            .from("student_cards")
+            .update({
+              status: "active",
+              issued_at: new Date().toISOString(),
+              expires_at: `${expiryDate}T23:59:59Z`,
+            })
+            .eq("id", pendingCard.id)
+        } else {
+          await supabase.from("student_cards").insert({
+            student_id: studentData.id,
+            issue_number: `MUNP-${Date.now()}`,
+            status: "active",
+            issued_at: new Date().toISOString(),
+            expires_at: `${expiryDate}T23:59:59Z`,
+            qr_code: studentData.id,
+          })
+        }
       }
     }
 
