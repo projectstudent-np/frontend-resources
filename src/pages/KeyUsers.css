@@ -51,83 +51,40 @@
 /* ===== Card ===== */
 .key-users-card {
     display: flex;
-    flex-direction: column;
-    padding: var(--space-6);
-    gap: var(--space-5);
+    flex-direction: row;
+    background: var(--color-surface);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    transition: border-color var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
     animation: fadeInUp 0.5s var(--ease-out-expo) both;
 }
 
 .key-users-card:nth-child(1) { animation-delay: 0.1s; }
 .key-users-card:nth-child(2) { animation-delay: 0.16s; }
 
-.key-users-card:hover {
-    border-color: var(--gray-300);
-}
-
-/* ===== Card Top (avatar + linkedin) ===== */
-.key-users-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.key-users-linkedin {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--gray-200);
-    background: var(--color-surface);
-    color: var(--gray-400);
-    cursor: pointer;
-    transition:
-        color var(--transition-fast),
-        border-color var(--transition-fast),
-        background var(--transition-fast);
-    font-family: var(--font-family);
-}
-
-.key-users-linkedin:hover {
-    color: #0A66C2;
-    border-color: #0A66C2;
-    background: var(--accent-25);
-}
-
-/* ===== Avatar ===== */
-.key-users-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    background: var(--gray-50);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* ===== Photo ===== */
+.key-users-photo-wrap {
+    width: 180px;
+    min-height: 100%;
     flex-shrink: 0;
-    border: 2px solid var(--gray-200);
-    transition: border-color var(--transition-base);
+    background: var(--gray-100);
 }
 
-.key-users-card:hover .key-users-avatar {
-    border-color: var(--gray-300);
-}
-
-.key-users-avatar svg {
-    width: 48px;
-    height: 48px;
-}
-
-.key-users-avatar-img {
+.key-users-photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+}
+
+.key-users-photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-50);
 }
 
 /* ===== Info ===== */
@@ -135,25 +92,27 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    padding: var(--space-6);
 }
 
 .key-users-name {
-    font-size: var(--text-md);
+    font-size: var(--text-lg);
     font-weight: 700;
     color: var(--gray-900);
+    letter-spacing: -0.02em;
     line-height: 1.3;
-    letter-spacing: -0.01em;
 }
 
 .key-users-role {
+    display: inline-flex;
+    align-self: flex-start;
     font-size: 11px;
     font-weight: 600;
     color: var(--brand-700);
     background: var(--brand-50);
-    padding: 3px var(--space-3);
+    padding: 4px var(--space-3);
     border-radius: var(--radius-full);
-    align-self: flex-start;
-    line-height: 1.5;
+    line-height: 1.4;
     letter-spacing: 0.01em;
 }
 
@@ -162,6 +121,26 @@
     color: var(--gray-500);
     line-height: 1.7;
     margin-top: var(--space-1);
+}
+
+.key-users-linkedin {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-surface);
+    background: #0A66C2;
+    text-decoration: none;
+    margin-top: var(--space-2);
+    padding: 8px 20px;
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease;
+}
+
+.key-users-linkedin:hover {
+    background: #004182;
 }
 
 /* ===== Responsive ===== */
@@ -180,34 +159,20 @@
     }
 
     .key-users-card {
-        padding: var(--space-5);
-        flex-direction: row;
-        align-items: flex-start;
-        gap: var(--space-4);
-    }
-
-    .key-users-card-top {
         flex-direction: column;
-        gap: var(--space-3);
-        width: auto;
-        flex-shrink: 0;
     }
 
-    .key-users-avatar {
-        width: 64px;
-        height: 64px;
+    .key-users-photo-wrap {
+        width: 100%;
+        min-height: auto;
+        height: 200px;
     }
 
-    .key-users-avatar svg {
-        width: 40px;
-        height: 40px;
+    .key-users-info {
+        padding: var(--space-5);
     }
 
     .key-users-section-title {
         font-size: var(--text-lg);
-    }
-
-    .key-users-linkedin {
-        display: none;
     }
 }
