@@ -26,24 +26,37 @@ export default function Tickets() {
             setLoading(false);
             return;
         }
+
+        let cancelled = false;
+
+        async function loadTickets() {
+            setLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('tickets')
+                    .select('*')
+                    .eq('user_id', userId!)
+                    .order('created_at', { ascending: false });
+                if (error) console.warn('[Tickets] query error:', error.message);
+                if (!cancelled) {
+                    setTickets(data ?? []);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('[Tickets] loadTickets error:', err);
+                    setLoading(false);
+                }
+            }
+        }
+
         loadTickets();
+        return () => { cancelled = true; };
     }, [userId]);
 
     useEffect(() => {
         if (selected) loadMessages(selected);
     }, [selected]);
-
-    async function loadTickets() {
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('tickets')
-            .select('*')
-            .eq('user_id', userId!)
-            .order('created_at', { ascending: false });
-        if (error) console.warn('[Tickets] query error:', error.message);
-        setTickets(data ?? []);
-        setLoading(false);
-    }
 
     async function loadMessages(ticketId: string) {
         const { data, error } = await supabase
@@ -100,7 +113,17 @@ export default function Tickets() {
             <div className="tickets-layout">
                 <div className="tickets-sidebar">
                     {loading ? (
-                        <div className="dashboard-loading" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-3)' }}>
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-100)' }}>
+                                    <span className="skeleton-block" style={{ width: 160, height: 14, display: 'block' }} />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                                        <span className="skeleton-block" style={{ width: 70, height: 22, borderRadius: 11, display: 'block' }} />
+                                        <span className="skeleton-block" style={{ width: 60, height: 12, display: 'block' }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : tickets.length === 0 ? (
                         <p className="empty-note">Nenhum ticket ainda.</p>
                     ) : (

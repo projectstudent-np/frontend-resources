@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../app/supabase';
+import { useAuth } from '../store/AuthContext';
 import type { User } from '../types';
 import usePageTitle from '../hooks/usePageTitle';
 import AdminOverview from '../components/AdminOverview';
@@ -42,6 +43,26 @@ const CARD_STATUS_BADGES: Record<string, string> = {
 
 const ROLES = ['student', 'driver', 'executive', 'admin'];
 
+const AUDIT_ACTION_LABELS: Record<string, string> = {
+    submitted: 'Solicitação enviada',
+    approved: 'Aprovado',
+    rejected: 'Rejeitado',
+    info_requested: 'Info solicitada',
+    resubmitted: 'Reenviado',
+    unblocked: 'Desbloqueado',
+};
+
+interface AuditLog {
+    id: string;
+    action: string;
+    performed_by: string;
+    justification: string | null;
+    ticket_id: string | null;
+    users?: { full_name: string; email: string } | null;
+    tickets?: { ticket_number: string; type: string; user_id: string } | null;
+    created_at: string;
+}
+
 interface UserCardInfo {
     cardId: string;
     status: string;
@@ -51,7 +72,8 @@ interface UserCardInfo {
 
 export default function AdminDashboard() {
     usePageTitle('Administrador');
-    const [activeTab, setActiveTab] = useState<'overview' | 'users' | MasterTable | 'configuracoes'>('overview');
+    const { session } = useAuth();
+    const [activeTab, setActiveTab] = useState<'overview' | 'users' | MasterTable | 'configuracoes' | 'auditoria'>('overview');
     const [users, setUsers] = useState<User[]>([]);
     const [periodos, setPeriodos] = useState<MasterItem[]>([]);
     const [instituicoes, setInstituicoes] = useState<MasterItem[]>([]);
@@ -62,6 +84,9 @@ export default function AdminDashboard() {
     const [successMessage, setSuccessMessage] = useState('');
     const [cardExpiryDate, setCardExpiryDate] = useState('');
     const [savingSettings, setSavingSettings] = useState(false);
+    const [roleFilter, setRoleFilter] = useState('');
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+    const [auditLoading, setAuditLoading] = useState(false);
 
     // Item modal: add or edit
     const [itemModal, setItemModal] = useState<
@@ -79,6 +104,9 @@ export default function AdminDashboard() {
         | null
     >(null);
 
+    // Promote confirmation modal
+    const [promoteTarget, setPromoteTarget] = useState<User | null>(null);
+
     // User detail modal
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [userCard, setUserCard] = useState<UserCardInfo | null>(null);
@@ -87,26 +115,29 @@ export default function AdminDashboard() {
     const [userModalRole, setUserModalRole] = useState('');
 
     useEffect(() => {
-        loadData();
-    }, []);
+        let cancelled = false;
 
-    async function loadData() {
-        setLoading(true);
-        try {
-            await Promise.all([
-                loadUsers(),
-                loadPeriodos(),
-                loadInstituicoes(),
-                loadCidades(),
-                loadCursos(),
-                loadSettings(),
-            ]);
-        } catch (err) {
-            console.error('[AdminDashboard] loadData error:', err);
-        } finally {
-            setLoading(false);
+        async function doLoad() {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    loadUsers(),
+                    loadPeriodos(),
+                    loadInstituicoes(),
+                    loadCidades(),
+                    loadCursos(),
+                    loadSettings(),
+                ]);
+            } catch (err) {
+                if (!cancelled) console.error('[AdminDashboard] loadData error:', err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
         }
-    }
+
+        doLoad();
+        return () => { cancelled = true; };
+    }, []);
 
     async function loadSettings() {
         const { data } = await supabase
@@ -220,11 +251,23 @@ export default function AdminDashboard() {
             await reloadTable(table);
         } else {
             const { id, nome } = confirmDelete;
-            const { error } = await supabase.from('users').delete().eq('id', id);
-            setConfirmDelete(null);
-            setSelectedUser(null);
-            setUserCard(null);
-            if (error) { alert(`Erro ao deletar usuário: ${error.message}`); return; }
+            const token = session?.access_token;
+            if (!token) { alert('Sessão expirada'); return; }
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                const json = await res.json();
+                setConfirmDelete(null);
+                setSelectedUser(null);
+                setUserCard(null);
+                if (!json.success) { alert(`Erro ao deletar usuário: ${json.message}`); return; }
+            } catch {
+                setConfirmDelete(null);
+                alert('Erro de conexão ao deletar usuário');
+                return;
+            }
             showSuccess(`${nome} removido do sistema!`);
             await loadUsers();
         }
@@ -311,12 +354,75 @@ export default function AdminDashboard() {
         }
     }
 
+    // ── Audit logs ─────────────────────────────────
+
+    async function loadAuditLogs() {
+        const token = session?.access_token;
+        if (!token) return;
+        setAuditLoading(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/audit/logs?limit=100`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const json = await res.json();
+            if (json.success) setAuditLogs(json.data);
+        } catch (err) {
+            console.error('[AdminDashboard] loadAuditLogs error:', err);
+        } finally {
+            setAuditLoading(false);
+        }
+    }
+
+    // ── Block/unblock user ──────────────────────────
+
+    async function handleToggleBlock() {
+        if (!selectedUser) return;
+        setUserActionLoading(true);
+        const newStatus = !(selectedUser.is_active ?? true);
+        const token = session?.access_token;
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${selectedUser.id}/block`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_active: newStatus }),
+            });
+            const json = await res.json();
+            setUserActionLoading(false);
+            if (json.success) {
+                showSuccess(newStatus ? 'Usuário desbloqueado!' : 'Usuário bloqueado!');
+                setSelectedUser({ ...selectedUser, is_active: newStatus } as User);
+                await loadUsers();
+            } else {
+                alert(`Erro: ${json.message}`);
+            }
+        } catch (err) {
+            setUserActionLoading(false);
+            console.error('[AdminDashboard] handleToggleBlock error:', err);
+            alert('Erro ao alterar status do usuário.');
+        }
+    }
+
+    // ── Promote to executive ────────────────────────
+
+    async function handlePromoteToExecutive(user: User) {
+        setPromoteTarget(null);
+        setUserActionLoading(true);
+        await supabase.from('users').update({ role: 'executive' }).eq('id', user.id);
+        setUserActionLoading(false);
+        showSuccess(`${user.full_name} promovido a Executivo!`);
+        await loadUsers();
+    }
+
     // ── Filtering and helpers ───────────────────────
 
     const filtered = users.filter(
         (u) =>
-            u.full_name.toLowerCase().includes(search.toLowerCase()) ||
-            u.email.toLowerCase().includes(search.toLowerCase())
+            (u.full_name.toLowerCase().includes(search.toLowerCase()) ||
+            u.email.toLowerCase().includes(search.toLowerCase())) &&
+            (roleFilter === '' || u.role === roleFilter)
     );
 
     function getItems(table: MasterTable): MasterItem[] {
@@ -421,12 +527,35 @@ export default function AdminDashboard() {
                 <button className={`admin-tab-btn ${activeTab === 'cidades' ? 'active' : ''}`} onClick={() => { setActiveTab('cidades'); setSearch(''); }}>Cidades</button>
                 <button className={`admin-tab-btn ${activeTab === 'cursos' ? 'active' : ''}`} onClick={() => { setActiveTab('cursos'); setSearch(''); }}>Cursos</button>
                 <button className={`admin-tab-btn ${activeTab === 'configuracoes' ? 'active' : ''}`} onClick={() => { setActiveTab('configuracoes'); setSearch(''); }}>Configurações</button>
+                <button className={`admin-tab-btn ${activeTab === 'auditoria' ? 'active' : ''}`} onClick={() => { setActiveTab('auditoria'); setSearch(''); loadAuditLogs(); }}>Auditoria</button>
             </div>
 
             {activeTab === 'overview' && <AdminOverview />}
 
             {loading ? (
-                <div className="dashboard-loading" />
+                <div className="admin-tab-content">
+                    <span className="skeleton-block" style={{ width: 200, height: 20, display: 'block' }} />
+                    <div className="admin-table-wrap" style={{ marginTop: 'var(--space-4)' }}>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    {[120, 180, 100, 80, 100, 80].map((w, i) => (
+                                        <th key={i}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <tr key={i}>
+                                        {[120, 180, 100, 80, 100, 80].map((w, j) => (
+                                            <td key={j}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             ) : (
                 <>
                     {activeTab === 'users' && (
@@ -434,6 +563,13 @@ export default function AdminDashboard() {
                             <h2 className="admin-tab-title">Gerenciar Usuários</h2>
 
                             {successMessage && <p className="admin-success">{successMessage}</p>}
+
+                            <div className="admin-role-filter" style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+                                <button className={`btn btn-sm ${roleFilter === '' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setRoleFilter('')}>Todos</button>
+                                <button className={`btn btn-sm ${roleFilter === 'executive' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setRoleFilter('executive')}>Executivos</button>
+                                <button className={`btn btn-sm ${roleFilter === 'student' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setRoleFilter('student')}>Estudantes</button>
+                                <button className={`btn btn-sm ${roleFilter === 'admin' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setRoleFilter('admin')}>Admins</button>
+                            </div>
 
                             <div className="admin-toolbar">
                                 <div className="input-group admin-search">
@@ -463,7 +599,12 @@ export default function AdminDashboard() {
                                     <tbody>
                                         {filtered.map((u) => (
                                             <tr key={u.id}>
-                                                <td style={{ color: 'var(--gray-900)', fontWeight: 500 }}>{u.full_name}</td>
+                                                <td style={{ color: 'var(--gray-900)', fontWeight: 500 }}>
+                                                    {u.full_name}
+                                                    {u.is_active === false && (
+                                                        <span className="badge badge-error" style={{ marginLeft: 'var(--space-2)' }}>Bloqueado</span>
+                                                    )}
+                                                </td>
                                                 <td>{u.email}</td>
                                                 <td className="admin-cpf">{u.cpf}</td>
                                                 <td>
@@ -472,13 +613,22 @@ export default function AdminDashboard() {
                                                     </span>
                                                 </td>
                                                 <td>{formatDate(u.created_at)}</td>
-                                                <td>
+                                                <td style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
                                                     <button
                                                         className="btn btn-secondary btn-sm"
                                                         onClick={() => openUserModal(u)}
                                                     >
                                                         Gerenciar
                                                     </button>
+                                                    {(u.role === 'student' || u.role === 'driver') && (
+                                                        <button
+                                                            className="btn btn-accent btn-sm"
+                                                            onClick={() => setPromoteTarget(u)}
+                                                            disabled={userActionLoading}
+                                                        >
+                                                            Promover a Executivo
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}
@@ -519,6 +669,67 @@ export default function AdminDashboard() {
                                     {savingSettings ? 'Salvando...' : 'Salvar'}
                                 </button>
                             </div>
+                        </div>
+                    )}
+                    {activeTab === 'auditoria' && (
+                        <div className="admin-tab-content">
+                            <h2 className="admin-tab-title">Auditoria do Sistema</h2>
+
+                            {auditLoading ? (
+                                <div className="admin-table-wrap" style={{ marginTop: 'var(--space-4)' }}>
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                {[140, 160, 140, 200, 100].map((w, i) => (
+                                                    <th key={i}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                <tr key={i}>
+                                                    {[140, 160, 140, 200, 100].map((w, j) => (
+                                                        <td key={j}><span className="skeleton-block" style={{ width: w, height: 14, display: 'block' }} /></td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : auditLogs.length === 0 ? (
+                                <div className="empty-state">
+                                    <p className="empty-state-title">Nenhum registro de auditoria encontrado.</p>
+                                </div>
+                            ) : (
+                                <div className="admin-table-wrap">
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Ação</th>
+                                                <th>Responsável</th>
+                                                <th>Justificativa</th>
+                                                <th>Ticket</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {auditLogs.map((log) => (
+                                                <tr key={log.id}>
+                                                    <td>{new Date(log.created_at).toLocaleString('pt-BR')}</td>
+                                                    <td>
+                                                        <span className="badge badge-neutral">
+                                                            {AUDIT_ACTION_LABELS[log.action] ?? log.action}
+                                                        </span>
+                                                    </td>
+                                                    <td>{log.users?.full_name ?? '—'}</td>
+                                                    <td>{log.justification ?? '—'}</td>
+                                                    <td>{log.tickets?.ticket_number ?? '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     )}
                 </>
@@ -632,7 +843,10 @@ export default function AdminDashboard() {
                             <div className="user-modal-section">
                                 <label className="user-modal-section-title">Carteirinha estudantil</label>
                                 {userCardLoading ? (
-                                    <div className="dashboard-loading" style={{ minHeight: '40px' }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                        <span className="skeleton-block" style={{ width: 140, height: 14, display: 'block' }} />
+                                        <span className="skeleton-block" style={{ width: 100, height: 14, display: 'block' }} />
+                                    </div>
                                 ) : userCard ? (
                                     <div className="user-modal-card-info">
                                         <div className="user-modal-card-row">
@@ -676,6 +890,31 @@ export default function AdminDashboard() {
                                         </svg>
                                         Enviar redefinição de senha
                                     </button>
+                                    {(selectedUser.is_active ?? true) ? (
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={handleToggleBlock}
+                                            disabled={userActionLoading}
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                                            </svg>
+                                            Bloquear usuário
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="btn btn-sm"
+                                            style={{ backgroundColor: 'var(--color-success-500)', color: '#fff', borderColor: 'var(--color-success-500)' }}
+                                            onClick={handleToggleBlock}
+                                            disabled={userActionLoading}
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                            Desbloquear usuário
+                                        </button>
+                                    )}
                                     <button
                                         className="btn btn-danger btn-sm"
                                         onClick={() => setConfirmDelete({ type: 'user', id: selectedUser.id, nome: selectedUser.full_name })}
@@ -689,6 +928,34 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Modal: Confirmar promoção */}
+            {promoteTarget && createPortal(
+                <div className="confirm-modal-overlay" onClick={() => setPromoteTarget(null)}>
+                    <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="confirm-modal-icon" style={{ color: 'var(--accent-400)' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <h3 className="confirm-modal-title">Confirmar alteração de papel</h3>
+                        <p className="confirm-modal-message">
+                            Deseja alterar o papel de <strong>{promoteTarget.full_name}</strong> de{' '}
+                            <strong>{ROLE_LABELS[promoteTarget.role] ?? promoteTarget.role}</strong> para{' '}
+                            <strong>Executivo</strong>?
+                        </p>
+                        <p className="confirm-modal-warning">O usuário passará a ter acesso ao painel executivo.</p>
+                        <div className="confirm-modal-actions">
+                            <button className="btn btn-secondary btn-sm" onClick={() => setPromoteTarget(null)}>Cancelar</button>
+                            <button className="btn btn-accent btn-sm" onClick={() => handlePromoteToExecutive(promoteTarget)}>Confirmar</button>
                         </div>
                     </div>
                 </div>,

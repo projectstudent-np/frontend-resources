@@ -112,7 +112,42 @@ export default function ValidateCard() {
   return (
     <div className="validate-page">
       {loading ? (
-        <div className="dashboard-loading" />
+        <>
+          <div className="validate-status-banner">
+            <span className="skeleton-block" style={{ width: 200, height: 28, borderRadius: 14, display: "inline-block" }} />
+          </div>
+          <div className="student-card-virtual">
+            <div className="student-card-document">
+              <div className="student-card-doc-header">
+                <div className="student-card-doc-header-row">
+                  <div className="skeleton-block" style={{ width: 48, height: 48, borderRadius: 8 }} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span className="skeleton-block" style={{ width: 220, height: 16, display: "block" }} />
+                    <span className="skeleton-block" style={{ width: 160, height: 13, display: "block" }} />
+                  </div>
+                </div>
+              </div>
+              <div className="student-card-doc-body">
+                <div className="skeleton-block" style={{ width: 100, height: 120, borderRadius: 8 }} />
+                <div className="student-card-doc-fields">
+                  {[140, 110, 130, 100, 150, 90].map((w, i) => (
+                    <div className="student-card-doc-field" key={i}>
+                      <span className="skeleton-block" style={{ width: 60, height: 12, display: "block" }} />
+                      <span className="skeleton-block" style={{ width: w, height: 14, display: "block" }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="student-card-virtual-bottom">
+                <div className="skeleton-block" style={{ width: 80, height: 80, borderRadius: 6 }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <span className="skeleton-block" style={{ width: 120, height: 14, display: "block" }} />
+                  <span className="skeleton-block" style={{ width: 100, height: 12, display: "block" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       ) : !result ? (
         <div className="empty-state card">
           <h2 className="empty-state-title">Carteirinha não encontrada</h2>

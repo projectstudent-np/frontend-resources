@@ -55,7 +55,6 @@ interface ValidateResult {
 
 export default function DriverDashboard() {
   usePageTitle("Motorista")
-  const [qrValue, setQrValue] = useState("")
   const [result, setResult] = useState<ValidateResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -124,7 +123,7 @@ export default function DriverDashboard() {
         .select(
           "*, students(*, users(full_name, cpf, phone), cursos(nome), periodos(nome), instituicoes(nome), cidades(nome))",
         )
-        .eq("qr_code", id)
+        .eq("student_id", id)
         .maybeSingle()
 
       if (!cardData) {
@@ -173,19 +172,9 @@ export default function DriverDashboard() {
     }
   }
 
-  const handleManualValidate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!qrValue.trim()) {
-      setError("Insira o valor do QR Code.")
-      return
-    }
-    await handleValidateByUrl(qrValue)
-  }
-
   const resetScanner = () => {
     setResult(null)
     setError("")
-    setQrValue("")
     setScannerActive(true)
   }
 
@@ -215,42 +204,47 @@ export default function DriverDashboard() {
         </div>
       )}
 
-      {/* Divider */}
-      {scannerActive && <div className="scanner-divider">ou</div>}
-
-      {/* Input manual */}
-      <div className="form-card card">
-        <form onSubmit={handleManualValidate} className="auth-form">
-          <div className="input-group">
-            <label className="input-label" htmlFor="qr">
-              Código manual
-            </label>
-            <input
-              id="qr"
-              type="text"
-              className="input-field"
-              placeholder="Cole o conteúdo do QR Code ou UUID"
-              value={qrValue}
-              onChange={(e) => {
-                setQrValue(e.target.value)
-                setResult(null)
-                setError("")
-              }}
-            />
-          </div>
-          {error && <p className="auth-error">{error}</p>}
-          <button
-            type="submit"
-            className="btn btn-primary auth-btn"
-            disabled={loading}
-          >
-            {loading ? "Validando..." : "Validar Carteirinha"}
-          </button>
-        </form>
-      </div>
+      {/* Error message (from QR scan) */}
+      {error && (
+        <div className="card" style={{ padding: "var(--space-4)" }}>
+          <p className="auth-error">{error}</p>
+        </div>
+      )}
 
       {/* Resultado */}
-      {loading && <div className="dashboard-loading" />}
+      {loading && (
+        <div className="student-card-virtual" style={{ marginTop: "var(--space-4)" }}>
+          <div className="student-card-document">
+            <div className="student-card-doc-header">
+              <div className="student-card-doc-header-row">
+                <div className="skeleton-block" style={{ width: 48, height: 48, borderRadius: 8 }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <span className="skeleton-block" style={{ width: 220, height: 16, display: "block" }} />
+                  <span className="skeleton-block" style={{ width: 160, height: 13, display: "block" }} />
+                </div>
+              </div>
+            </div>
+            <div className="student-card-doc-body">
+              <div className="skeleton-block" style={{ width: 100, height: 120, borderRadius: 8 }} />
+              <div className="student-card-doc-fields">
+                {[140, 110, 130, 100, 150, 90].map((w, i) => (
+                  <div className="student-card-doc-field" key={i}>
+                    <span className="skeleton-block" style={{ width: 60, height: 12, display: "block" }} />
+                    <span className="skeleton-block" style={{ width: w, height: 14, display: "block" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="student-card-virtual-bottom">
+              <div className="skeleton-block" style={{ width: 80, height: 80, borderRadius: 6 }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span className="skeleton-block" style={{ width: 120, height: 14, display: "block" }} />
+                <span className="skeleton-block" style={{ width: 100, height: 12, display: "block" }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {result && !result.studentName && !result.valid && (
         <div

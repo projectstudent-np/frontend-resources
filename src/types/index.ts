@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   role: UserRole;
   avatar_path: string | null;
+  is_active: boolean;
   created_at: string;
 }
 

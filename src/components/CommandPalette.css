@@ -8,7 +8,7 @@
     align-items: flex-start;
     justify-content: center;
     padding-top: 15vh;
-    animation: cmd-fade-in 0.12s ease;
+    animation: cmd-fade-in 0.15s var(--ease-out-expo);
 }
 
 @keyframes cmd-fade-in {
@@ -18,20 +18,20 @@
 
 .cmd-palette {
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
     background: var(--color-surface);
-    border-radius: var(--radius-xl, 16px);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--gray-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl), 0 0 0 1px var(--gray-200);
     overflow: hidden;
-    animation: cmd-slide-in 0.15s ease;
+    animation: cmd-slide-in 0.2s var(--ease-out-expo);
 }
 
 @keyframes cmd-slide-in {
-    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Header / Input ─────────────────────────── */
+/* -- Header / Input -------------------------------- */
 .cmd-palette-header {
     display: flex;
     align-items: center;
@@ -66,7 +66,7 @@
     min-width: 24px;
     height: 22px;
     padding: 0 6px;
-    background: var(--gray-100);
+    background: var(--gray-50);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-sm);
     font-size: 11px;
@@ -75,21 +75,22 @@
     flex-shrink: 0;
 }
 
-/* ── List ────────────────────────────────────── */
+/* -- List ------------------------------------------ */
 .cmd-palette-list {
-    max-height: 340px;
+    max-height: 360px;
     overflow-y: auto;
     padding: var(--space-2) 0;
 }
 
 .cmd-palette-empty {
-    padding: var(--space-8) var(--space-5);
+    padding: var(--space-10) var(--space-5);
     text-align: center;
     font-size: var(--text-sm);
     color: var(--gray-400);
+    line-height: 1.5;
 }
 
-/* ── Item ────────────────────────────────────── */
+/* -- Item ------------------------------------------ */
 .cmd-palette-item {
     display: flex;
     align-items: center;
@@ -101,7 +102,8 @@
     cursor: pointer;
     text-align: left;
     font-family: var(--font-family);
-    transition: background 0.08s;
+    transition: background var(--transition-fast);
+    border-radius: 0;
 }
 
 .cmd-palette-item-active {
@@ -112,23 +114,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     background: var(--gray-100);
     border-radius: var(--radius-md);
     flex-shrink: 0;
     color: var(--gray-500);
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .cmd-palette-item-active .cmd-palette-item-icon {
-    background: var(--brand-50, var(--gray-100));
-    color: var(--brand-600, var(--gray-600));
+    background: var(--brand-50);
+    color: var(--brand-600);
 }
 
 .cmd-palette-item-text {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     min-width: 0;
     flex: 1;
 }
@@ -137,6 +140,7 @@
     font-size: var(--text-sm);
     font-weight: 500;
     color: var(--gray-800);
+    line-height: 1.4;
 }
 
 .cmd-palette-item-desc {
@@ -145,6 +149,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.4;
 }
 
 .cmd-palette-item-badge {
@@ -152,14 +157,14 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--brand-600, var(--gray-500));
-    background: var(--brand-50, var(--gray-100));
+    color: var(--brand-600);
+    background: var(--brand-50);
     padding: 2px 8px;
     border-radius: var(--radius-full);
     flex-shrink: 0;
 }
 
-/* ── Footer ──────────────────────────────────── */
+/* -- Footer ---------------------------------------- */
 .cmd-palette-footer {
     display: flex;
     align-items: center;
@@ -167,6 +172,7 @@
     padding: var(--space-3) var(--space-5);
     border-top: 1px solid var(--gray-100);
     background: var(--gray-50);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 .cmd-palette-footer span {
@@ -186,18 +192,22 @@
     padding: 0 4px;
     background: var(--color-surface);
     border: 1px solid var(--gray-200);
-    border-radius: 3px;
+    border-radius: var(--radius-xs);
     font-size: 10px;
     font-family: var(--font-family);
     color: var(--gray-500);
 }
 
-/* ── Responsive ──────────────────────────────── */
+/* -- Responsive ------------------------------------ */
 @media (max-width: 640px) {
     .cmd-palette-overlay {
         padding-top: 10vh;
         padding-left: var(--space-4);
         padding-right: var(--space-4);
+    }
+
+    .cmd-palette {
+        max-width: 100%;
     }
 
     .cmd-palette-footer {

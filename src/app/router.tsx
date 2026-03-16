@@ -31,6 +31,7 @@ import AdminDashboard from '../pages/AdminDashboard';
 
 // Shared
 import ValidateCard from '../pages/ValidateCard';
+import OfflineCard from '../pages/OfflineCard';
 
 export default function AppRouter() {
     return (
@@ -58,6 +59,7 @@ export default function AppRouter() {
                         <Route path="/transparency" element={<Transparency />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
                         <Route path="/validate/:studentId" element={<ValidateCard />} />
+                        <Route path="/offline" element={<OfflineCard />} />
 
                         {/* Student - protected */}
                         <Route element={<PrivateRoute allowedRoles={['student']} />}>

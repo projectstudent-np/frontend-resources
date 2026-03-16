@@ -2,31 +2,23 @@
 .slideout-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(16, 24, 40, 0.5);
+  background: rgba(10, 10, 16, 0.4);
   z-index: 1000;
-  animation: slideout-overlay-in 0.2s ease;
+  animation: slideout-overlay-in 0.2s var(--ease-out-expo);
 }
 
 .slideout-overlay.slideout-closing {
-  animation: slideout-overlay-out 0.25s ease forwards;
+  animation: slideout-overlay-out 0.25s var(--ease-out-expo) forwards;
 }
 
 @keyframes slideout-overlay-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideout-overlay-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 /* ===== Slideout Panel ===== */
@@ -36,43 +28,36 @@
   right: 0;
   bottom: 0;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   background: var(--color-surface);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-2xl);
   display: flex;
   flex-direction: column;
-  animation: slideout-panel-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideout-panel-in 0.35s var(--ease-out-expo);
   will-change: transform;
   outline: none;
+  border-left: 1px solid var(--gray-100);
 }
 
 .slideout-panel.slideout-panel-closing {
-  animation: slideout-panel-out 0.25s ease forwards;
+  animation: slideout-panel-out 0.25s var(--ease-out-expo) forwards;
 }
 
 @keyframes slideout-panel-in {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 
 @keyframes slideout-panel-out {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
 }
 
 /* ===== Close Button ===== */
 .slideout-close-btn {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: var(--space-4);
+  right: var(--space-4);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -81,17 +66,22 @@
   height: 36px;
   border-radius: var(--radius-md);
   border: none;
-  background: none;
+  background: transparent;
   cursor: pointer;
   color: var(--gray-400);
   transition:
-    background 0.15s,
-    color 0.15s;
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .slideout-close-btn:hover {
   background: var(--gray-100);
-  color: var(--gray-600);
+  color: var(--gray-700);
+}
+
+.slideout-close-btn:active {
+  opacity: 0.7;
 }
 
 /* ===== Header ===== */
@@ -99,7 +89,7 @@
   padding: var(--space-6) var(--space-6) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
   flex-shrink: 0;
 }
 
@@ -115,13 +105,18 @@
   width: 80px;
   height: 80px;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   overflow: hidden;
   border: 3px solid var(--gray-200);
+  transition: border-color var(--transition-base);
 }
 
 .slideout-avatar-editable {
   cursor: pointer;
+}
+
+.slideout-avatar-editable:hover {
+  border-color: var(--gray-300);
 }
 
 .slideout-avatar-editable:hover .slideout-avatar-hover {
@@ -132,23 +127,18 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 @keyframes slideout-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
 }
 
 .slideout-avatar-shimmer {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--gray-200);
   animation: slideout-pulse 1.5s ease-in-out infinite;
 }
@@ -161,14 +151,14 @@
 .slideout-avatar-hover {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(10, 10, 16, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   opacity: 0;
-  transition: opacity 0.2s;
-  border-radius: 50%;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-full);
 }
 
 .slideout-avatar-input {
@@ -180,20 +170,19 @@
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   animation: slideout-spin 0.6s linear infinite;
 }
 
 @keyframes slideout-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
+/* ── User Info ── */
 .slideout-user-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
   flex: 1;
 }
@@ -207,17 +196,19 @@
 
 .slideout-user-name {
   font-size: var(--text-lg);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gray-900);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
 .slideout-user-cpf {
   font-size: var(--text-sm);
-  font-family: monospace;
-  color: var(--gray-500);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--gray-400);
+  letter-spacing: 0.02em;
 }
 
 /* ===== Stats ===== */
@@ -234,7 +225,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: 10px 0;
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--gray-100);
 }
 
@@ -245,7 +236,7 @@
 .slideout-stat-label {
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--gray-500);
+  color: var(--gray-400);
 }
 
 .slideout-stat-value {
@@ -261,7 +252,7 @@
   width: 1px;
   height: 40px;
   background: var(--gray-200);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -270,12 +261,31 @@
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-5) var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
+/* Smooth scrollbar */
+.slideout-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.slideout-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.slideout-body::-webkit-scrollbar-thumb {
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+}
+
+.slideout-body::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-300);
+}
+
+/* ── Form ── */
 .slideout-form {
   display: flex;
   flex-direction: column;
@@ -284,7 +294,7 @@
 
 .slideout-separator {
   height: 0;
-  border-top: 2px dashed var(--gray-200);
+  border-top: 1px dashed var(--gray-200);
 }
 
 .slideout-field-row {
@@ -296,6 +306,7 @@
   flex: 1;
 }
 
+/* ── Messages ── */
 .slideout-error {
   padding: var(--space-3) var(--space-4);
   background: var(--color-error-50);
@@ -303,6 +314,8 @@
   color: var(--color-error-700);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  line-height: 1.5;
+  animation: fadeInUp 0.3s var(--ease-out-expo) both;
 }
 
 .slideout-success {
@@ -312,14 +325,17 @@
   color: var(--color-success-700);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  line-height: 1.5;
+  animation: fadeInUp 0.3s var(--ease-out-expo) both;
 }
 
+/* ── Reset Password Button ── */
 .slideout-reset-btn {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 10px var(--space-4);
-  background: none;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-md);
   color: var(--gray-700);
@@ -328,8 +344,9 @@
   font-family: var(--font-family);
   cursor: pointer;
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
   width: 100%;
 }
 
@@ -338,9 +355,13 @@
   border-color: var(--gray-300);
 }
 
+.slideout-reset-btn:active:not(:disabled) {
+  opacity: 0.85;
+}
+
 .slideout-reset-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .slideout-reset-btn svg {
@@ -357,48 +378,50 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--gray-200);
+  background: var(--gray-25);
 }
 
-/* ===== Confirm overlay inside slideout ===== */
+/* ===== Confirm Overlay ===== */
 .slideout-confirm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(10, 10, 16, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1100;
   padding: var(--space-4);
+  animation: fadeIn 0.15s var(--ease-out-expo);
 }
 
-/* ===== Responsive ===== */
+/* ===== Responsive: Small Mobile ===== */
 @media (max-width: 480px) {
   .slideout-panel {
     max-width: 100%;
+    border-left: none;
   }
 
   .slideout-header {
     padding: var(--space-4) var(--space-4) 0;
-    gap: var(--space-3);
-    align-items: flex-start;
+    gap: var(--space-4);
   }
 
   .slideout-avatar-area {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-2);
+    gap: var(--space-3);
     padding-top: var(--space-2);
   }
 
   .slideout-avatar {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-width: 2px;
   }
 
   .slideout-avatar svg {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
   }
 
   .slideout-user-info {
@@ -411,7 +434,7 @@
   }
 
   .slideout-user-name {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
   }
 
   .slideout-user-cpf {
@@ -421,7 +444,7 @@
   .slideout-stats {
     flex-wrap: wrap;
     gap: 0;
-    padding-bottom: var(--space-2);
+    padding-bottom: var(--space-3);
   }
 
   .slideout-stat-divider {
@@ -429,7 +452,7 @@
   }
 
   .slideout-stat {
-    padding: 6px 0;
+    padding: var(--space-2) 0;
   }
 
   .slideout-stat-label,
@@ -439,22 +462,21 @@
 
   .slideout-body {
     padding: var(--space-3) var(--space-4);
-    gap: var(--space-2);
+    gap: var(--space-3);
   }
 
   .slideout-form {
-    gap: var(--space-2);
+    gap: var(--space-3);
   }
 
   .slideout-reset-btn {
-    padding: 8px var(--space-3);
+    padding: var(--space-2) var(--space-3);
     font-size: var(--text-xs);
     justify-content: center;
   }
 
   .slideout-footer {
     padding: var(--space-3) var(--space-4);
-    justify-content: flex-end;
     gap: var(--space-2);
   }
 }
