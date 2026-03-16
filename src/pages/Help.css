@@ -1,46 +1,52 @@
 /* ===== Help Page ===== */
+
 .help-page {
-    padding-bottom: var(--space-12);
+    padding-bottom: var(--space-16);
 }
 
 .help-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-10);
+    gap: var(--space-12);
+    animation: fadeInUp 0.5s var(--ease-out-expo) both;
 }
 
-/* ===== Section ===== */
+/* ── Section ────────────────────────────────────── */
 .help-section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-5);
 }
 
 .help-section-header {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--brand-500);
 }
 
 .help-section-title {
     font-size: var(--text-lg);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--gray-900);
+    letter-spacing: -0.01em;
 }
 
 .help-section-desc {
     font-size: var(--text-sm);
     color: var(--gray-500);
+    line-height: 1.5;
 }
 
-/* ===== FAQ List ===== */
+/* ── FAQ List ───────────────────────────────────── */
 .help-faq-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
 }
 
-/* ===== FAQ Card ===== */
+/* ── FAQ Card ───────────────────────────────────── */
 .help-faq-card {
     display: flex;
     flex-direction: column;
@@ -49,7 +55,9 @@
     border-radius: var(--radius-lg);
     padding: var(--space-4) var(--space-5);
     cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color var(--transition-fast),
+        background var(--transition-fast);
     text-align: left;
     font-family: var(--font-family);
     width: 100%;
@@ -57,19 +65,20 @@
 
 .help-faq-card:hover {
     border-color: var(--gray-300);
-    box-shadow: var(--shadow-xs);
+    background: var(--gray-25);
 }
 
 .help-faq-card-open {
-    border-color: var(--color-brand-200);
-    box-shadow: 0 0 0 1px var(--color-brand-100);
+    border-color: var(--brand-200);
+    background: var(--brand-25);
 }
 
 .help-faq-card-open:hover {
-    border-color: var(--color-brand-300);
+    border-color: var(--brand-300);
+    background: var(--brand-25);
 }
 
-/* ===== Card Header ===== */
+/* ── Card Header ────────────────────────────────── */
 .help-faq-card-header {
     display: flex;
     align-items: center;
@@ -84,8 +93,14 @@
     width: 40px;
     height: 40px;
     border-radius: var(--radius-md);
-    background: var(--color-brand-50);
-    color: var(--color-brand-600);
+    background: var(--gray-50);
+    color: var(--gray-500);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.help-faq-card-open .help-faq-icon {
+    background: var(--brand-100);
+    color: var(--brand-700);
 }
 
 .help-faq-icon svg {
@@ -97,21 +112,22 @@
     flex: 1;
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--gray-900);
-    line-height: 1.4;
+    color: var(--gray-800);
+    line-height: 1.5;
 }
 
 .help-faq-chevron {
     flex-shrink: 0;
     color: var(--gray-400);
-    transition: transform 0.2s ease;
+    transition: transform var(--transition-base), color var(--transition-base);
 }
 
 .help-faq-chevron.open {
     transform: rotate(180deg);
+    color: var(--brand-500);
 }
 
-/* ===== Answer ===== */
+/* ── Answer ─────────────────────────────────────── */
 .help-faq-answer {
     font-size: var(--text-sm);
     color: var(--gray-600);
@@ -120,14 +136,25 @@
     padding-top: var(--space-3);
     border-top: 1px solid var(--gray-100);
     padding-left: calc(40px + var(--space-3));
+    animation: fadeInUp 0.25s var(--ease-out-expo) both;
 }
 
-/* ===== CTA Card ===== */
+/* ── CTA Card ───────────────────────────────────── */
 .help-cta {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-5);
     padding: var(--space-5) var(--space-6);
+    border: 1px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    background: var(--gray-25);
+    animation: fadeInUp 0.5s var(--ease-out-expo) 0.1s both;
+    box-shadow: none;
+}
+
+.help-cta:hover {
+    border-color: var(--gray-400);
+    background: var(--gray-50);
 }
 
 .help-cta-icon {
@@ -137,9 +164,9 @@
     flex-shrink: 0;
     width: 48px;
     height: 48px;
-    border-radius: var(--radius-full);
-    background: var(--color-brand-50);
-    color: var(--color-brand-600);
+    border-radius: var(--radius-lg);
+    background: var(--brand-50);
+    color: var(--brand-600);
 }
 
 .help-cta-text {
@@ -149,25 +176,78 @@
 
 .help-cta-title {
     font-size: var(--text-sm);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--gray-900);
     margin-bottom: 2px;
 }
 
 .help-cta-desc {
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--gray-500);
+    line-height: 1.5;
 }
 
-/* ===== Responsive ===== */
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+    .help-content {
+        gap: var(--space-10);
+    }
+
+    .help-section-title {
+        font-size: var(--text-md);
+    }
+
+    .help-faq-card {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .help-cta {
+        padding: var(--space-4) var(--space-5);
+    }
+}
+
 @media (max-width: 640px) {
+    .help-page {
+        padding-bottom: var(--space-10);
+    }
+
+    .help-faq-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .help-faq-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
     .help-faq-answer {
-        padding-left: 0;
+        padding-left: calc(36px + var(--space-3));
+    }
+
+    .help-faq-card-header {
+        gap: var(--space-3);
     }
 
     .help-cta {
         flex-direction: column;
         text-align: center;
-        padding: var(--space-6) var(--space-5);
+        padding: var(--space-5) var(--space-4);
+        gap: var(--space-3);
+    }
+
+    .help-cta-icon {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .help-faq-answer {
+        padding-left: 0;
+    }
+
+    .help-faq-card {
+        padding: var(--space-3);
     }
 }

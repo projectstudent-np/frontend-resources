@@ -1,10 +1,11 @@
 import usePageTitle from '../hooks/usePageTitle';
+import './Dashboard.css';
 import './Legal.css';
 
 export default function Terms() {
     usePageTitle('Termos de Uso');
     return (
-        <div className="legal-page">
+        <div className="dashboard-page legal-page">
             <h1>Termos de Uso</h1>
             <p className="legal-updated">Última atualização: Março de 2026</p>
 

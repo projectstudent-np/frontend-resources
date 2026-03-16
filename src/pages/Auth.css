@@ -10,46 +10,67 @@
     display: flex;
     flex: 1;
     min-height: 0;
+    padding-top: var(--topbar-height);
 }
 
-/* ── Lado Esquerdo: Imagem de fundo (70%) ────────── */
+/* ── Lado Esquerdo: Imagem de fundo ──────────── */
 .auth-side {
-    flex: 7;
+    flex: 6.5;
     overflow: hidden;
     background: url('/logo-image-fundo-create.png') center / cover no-repeat;
 }
 
-/* ── Lado Direito: Formulario (30%) ──────────────── */
+/* ── Lado Direito: Formulario ────────────────── */
 .auth-form-side {
-    flex: 3;
+    flex: 3.5;
+    min-width: 380px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: var(--space-8) var(--space-6);
+    padding-top: var(--space-8);
     background: var(--color-surface);
     overflow-y: auto;
 }
 
-/* ── Back link ──────────────────────────────────── */
+/* ── Back link ──────────────────────────────── */
 .auth-back-link {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     font-size: var(--text-sm);
     color: var(--gray-500);
     font-weight: 500;
     text-decoration: none;
-    transition: color 0.15s;
+    transition: color var(--transition-fast);
     margin-bottom: var(--space-6);
+    border-radius: var(--radius-md);
+    padding: var(--space-1) var(--space-2);
+    margin-left: calc(-1 * var(--space-2));
 }
 
 .auth-back-link:hover {
-    color: var(--gray-700);
+    color: var(--gray-800);
+}
+
+/* ── Auth card with entrance animation ──────── */
+@keyframes authFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .auth-card {
     width: 100%;
     max-width: 420px;
+    margin-top: auto;
+    margin-bottom: auto;
+    animation: authFadeInUp 0.5s var(--ease-out-expo) both;
 }
 
 /* ── Divider + Switch card ───────────────────── */
@@ -67,16 +88,16 @@
     padding: var(--space-4) var(--space-5);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    background: var(--gray-50);
+    background: var(--gray-25);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
     font-family: var(--font-family);
     text-align: left;
     color: var(--gray-500);
 }
 
 .auth-switch-card:hover {
-    background: var(--gray-100);
+    background: var(--gray-50);
     border-color: var(--gray-300);
 }
 
@@ -96,6 +117,11 @@
 .auth-switch-chevron {
     flex-shrink: 0;
     color: var(--gray-400);
+    transition: transform var(--transition-fast);
+}
+
+.auth-switch-card:hover .auth-switch-chevron {
+    color: var(--gray-600);
 }
 
 /* ── Login expand animation ──────────────────── */
@@ -103,7 +129,7 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.35s ease, opacity 0.25s ease;
+    transition: max-height 0.4s var(--ease-out-expo), opacity 0.3s var(--ease-out-expo);
 }
 
 .auth-login-expand.expanded {
@@ -114,7 +140,7 @@
 .auth-login-expand-inner {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--space-6);
 }
 
 /* ── Success message ─────────────────────────── */
@@ -130,18 +156,35 @@
 }
 
 /* ── Email verification pending ──────────────── */
+@keyframes authVerifyBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes authVerifyFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .auth-verify-email {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-8) var(--space-4);
+    gap: var(--space-4);
+    padding: var(--space-10) var(--space-4);
     text-align: center;
+    animation: authVerifyFadeIn 0.5s var(--ease-out-expo) both;
 }
 
 .auth-verify-icon {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     background: var(--color-success-50);
     border: 2px solid var(--color-success-200);
@@ -149,12 +192,14 @@
     align-items: center;
     justify-content: center;
     color: var(--color-success);
+    transition: background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
 }
 
 .auth-verify-done {
     background: var(--color-success);
     border-color: var(--color-success);
     color: #fff;
+    animation: authVerifyBounce 0.4s var(--ease-out-expo);
 }
 
 .auth-verify-spinner {
@@ -188,11 +233,13 @@
     font-style: italic;
 }
 
+/* ── Title & description ─────────────────────── */
 .auth-title {
     font-size: var(--display-xs);
     font-weight: 600;
     color: var(--gray-900);
     margin-bottom: var(--space-1);
+    letter-spacing: -0.02em;
 }
 
 .auth-desc {
@@ -201,10 +248,11 @@
     margin-bottom: var(--space-8);
 }
 
+/* ── Form ────────────────────────────────────── */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--space-6);
 }
 
 .auth-btn {
@@ -214,13 +262,15 @@
     margin-top: var(--space-1);
 }
 
+/* ── Error message ───────────────────────────── */
 .auth-error {
     background: var(--color-error-50);
     border: 1px solid var(--color-error-100);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-5);
     color: var(--color-error-700);
     font-size: var(--text-sm);
+    line-height: 1.5;
 }
 
 .auth-footer-text {
@@ -240,7 +290,7 @@
     font-size: var(--text-sm);
     color: var(--brand-600);
     font-weight: 500;
-    transition: color 0.15s;
+    transition: color var(--transition-fast);
     background: none;
     border: none;
     padding: 0;
@@ -282,16 +332,20 @@
 }
 
 .auth-checkbox-mark {
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--gray-300);
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--gray-300);
     border-radius: var(--radius-xs);
     background: var(--color-surface);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
+    transition: all var(--transition-fast);
+}
+
+.auth-checkbox input:focus-visible + .auth-checkbox-mark {
+    box-shadow: var(--focus-ring);
 }
 
 .auth-checkbox input:checked + .auth-checkbox-mark {
@@ -301,11 +355,23 @@
 
 .auth-checkbox input:checked + .auth-checkbox-mark::after {
     content: '';
-    width: 4px;
-    height: 8px;
+    width: 4.5px;
+    height: 9px;
     border: solid #fff;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg) translate(-1px, -1px);
+    animation: authCheckIn 0.2s var(--ease-out-expo);
+}
+
+@keyframes authCheckIn {
+    from {
+        opacity: 0;
+        transform: rotate(45deg) translate(-1px, -1px) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(45deg) translate(-1px, -1px) scale(1);
+    }
 }
 
 .auth-checkbox-text {
@@ -354,11 +420,16 @@
     color: var(--gray-400);
     cursor: pointer;
     border-radius: var(--radius-xs);
-    transition: color 0.15s;
+    transition: color var(--transition-fast);
 }
 
 .input-eye-btn:hover {
     color: var(--gray-600);
+}
+
+.input-eye-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
 }
 
 /* ── Regras de senha ─────────────────────────── */
@@ -374,7 +445,7 @@
     gap: 6px;
     font-size: var(--text-xs);
     color: var(--gray-500);
-    transition: color 0.15s;
+    transition: color var(--transition-fast);
 }
 
 .input-rule.valid {
@@ -394,7 +465,7 @@
 
 /* ── Barra de forca da senha ─────────────────── */
 .password-strength-bar {
-    height: 4px;
+    height: 5px;
     background: var(--gray-200);
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -404,7 +475,7 @@
 .password-strength-fill {
     height: 100%;
     border-radius: var(--radius-full);
-    transition: width 0.3s ease, background 0.3s ease;
+    transition: width 0.4s var(--ease-out-expo), background 0.3s var(--ease-out-expo);
 }
 
 .password-strength-fill.weak {
@@ -457,6 +528,29 @@
 }
 
 /* ── Responsivo ──────────────────────────────── */
+
+/* Medium screens: reduce image side, give more room to form */
+@media (max-width: 1100px) {
+    .auth-side {
+        flex: 5;
+    }
+
+    .auth-form-side {
+        flex: 5;
+    }
+}
+
+@media (max-width: 900px) {
+    .auth-side {
+        flex: 4;
+    }
+
+    .auth-form-side {
+        flex: 6;
+        min-width: 0;
+    }
+}
+
 @media (max-width: 768px) {
     .auth-layout {
         height: auto;
@@ -466,6 +560,8 @@
 
     .auth-page {
         flex-direction: column;
+        min-height: 100vh;
+        padding-top: 0;
     }
 
     .auth-side {
@@ -473,16 +569,34 @@
     }
 
     .auth-form-side {
-        flex: none;
-        padding: calc(var(--topbar-height) + var(--space-6)) var(--space-4) var(--space-6);
+        flex: 1;
+        min-width: 0;
+        padding: calc(var(--topbar-height) + var(--space-8)) var(--space-5) var(--space-8);
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .auth-card {
+        max-width: 100%;
+        margin-top: 0;
     }
 
     .auth-back-link {
-        background: var(--gray-50);
-        padding: var(--space-3) var(--space-4);
-        border-radius: var(--radius-md);
+        background: none;
+        padding: 0;
+        margin-left: 0;
         font-size: var(--text-sm);
+        color: var(--gray-500);
+        font-weight: 500;
+    }
+
+    .auth-back-link:hover {
         color: var(--gray-700);
-        font-weight: 600;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form-side {
+        padding: calc(var(--topbar-height) + var(--space-6)) var(--space-4) var(--space-6);
     }
 }

@@ -1,10 +1,11 @@
 import usePageTitle from '../hooks/usePageTitle';
+import './Dashboard.css';
 import './Legal.css';
 
 export default function Privacy() {
     usePageTitle('Privacidade');
     return (
-        <div className="legal-page">
+        <div className="dashboard-page legal-page">
             <h1>Aviso de Privacidade</h1>
             <p className="legal-updated">Última atualização: Março de 2026</p>
 

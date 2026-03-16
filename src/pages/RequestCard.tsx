@@ -106,7 +106,23 @@ export default function RequestCard() {
     if (loadingData) {
         return (
             <div className="dashboard-page">
-                <div className="dashboard-loading" />
+                <div className="dashboard-header">
+                    <div>
+                        <span className="skeleton-block" style={{ width: 220, height: 24, display: 'block' }} />
+                        <span className="skeleton-block" style={{ width: 260, height: 14, display: 'block', marginTop: 8 }} />
+                    </div>
+                </div>
+                <div className="form-card card" style={{ padding: 'var(--space-5)' }}>
+                    <div className="auth-form-grid">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="input-group">
+                                <span className="skeleton-block" style={{ width: 100, height: 12, display: 'block' }} />
+                                <span className="skeleton-block" style={{ width: '100%', height: 40, display: 'block', borderRadius: 8, marginTop: 6 }} />
+                            </div>
+                        ))}
+                    </div>
+                    <span className="skeleton-block" style={{ width: '100%', height: 44, display: 'block', borderRadius: 8, marginTop: 'var(--space-4)' }} />
+                </div>
             </div>
         );
     }

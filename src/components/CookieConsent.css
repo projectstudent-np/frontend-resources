@@ -9,10 +9,10 @@
     max-width: 600px;
     padding: var(--space-6) var(--space-8);
     background: var(--gray-900);
-    border: 1px solid var(--gray-700);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-2xl);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    animation: cookie-slide-up 0.35s ease-out;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    animation: cookie-slide-up 0.4s var(--ease-out-expo);
 }
 
 @keyframes cookie-slide-up {
@@ -28,8 +28,8 @@
 
 .cookie-banner-text p {
     font-size: var(--text-sm);
-    color: rgba(255, 255, 255, 0.7);
-    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.65;
     margin: 0;
 }
 
@@ -37,7 +37,8 @@
     color: #fff;
     font-weight: 600;
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: 3px;
+    transition: color var(--transition-fast);
 }
 
 .cookie-banner-text a:hover {
@@ -52,34 +53,38 @@
 
 .cookie-btn-settings {
     background: transparent;
-    color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: var(--space-2) var(--space-5);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
+    font-family: var(--font-family);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .cookie-btn-settings:hover {
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .cookie-btn-decline {
     background: transparent;
-    color: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: var(--space-2) var(--space-5);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
+    font-family: var(--font-family);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .cookie-btn-decline:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .cookie-btn-accept {
@@ -90,8 +95,9 @@
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 600;
+    font-family: var(--font-family);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--transition-fast);
 }
 
 .cookie-btn-accept:hover {
@@ -103,12 +109,12 @@
     position: fixed;
     inset: 0;
     z-index: 1001;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-4);
-    animation: cookie-fade-in 0.2s ease-out;
+    animation: cookie-fade-in 0.2s var(--ease-out-expo);
 }
 
 @keyframes cookie-fade-in {
@@ -123,12 +129,12 @@
     max-width: 520px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-    animation: cookie-scale-in 0.25s ease-out;
+    box-shadow: var(--shadow-xl);
+    animation: cookie-scale-in 0.25s var(--ease-out-expo);
 }
 
 @keyframes cookie-scale-in {
-    from { transform: scale(0.95); opacity: 0; }
+    from { transform: scale(0.96); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
 }
 
@@ -141,7 +147,7 @@
 
 .cookie-settings-title {
     font-size: var(--text-lg);
-    font-weight: 600;
+    font-weight: 700;
     color: var(--gray-900);
     margin: 0;
 }
@@ -152,11 +158,11 @@
     padding: var(--space-2);
     cursor: pointer;
     color: var(--gray-400);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.15s, background 0.15s;
+    transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .cookie-settings-close:hover {
@@ -167,7 +173,7 @@
 .cookie-settings-desc {
     font-size: var(--text-sm);
     color: var(--gray-500);
-    line-height: 1.6;
+    line-height: 1.65;
     padding: var(--space-3) var(--space-6) 0;
     margin: 0;
 }
@@ -176,7 +182,7 @@
     color: var(--brand-600);
     font-weight: 600;
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-underline-offset: 3px;
 }
 
 .cookie-settings-desc a:hover {
@@ -211,7 +217,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    color: var(--gray-600);
+    color: var(--gray-500);
 }
 
 .cookie-category-title {
@@ -223,8 +229,8 @@
 
 .cookie-category-desc {
     font-size: var(--text-xs);
-    color: var(--gray-500);
-    line-height: 1.5;
+    color: var(--gray-400);
+    line-height: 1.55;
     margin: var(--space-2) 0 0;
     padding-left: calc(18px + var(--space-3));
 }
@@ -258,7 +264,7 @@
     inset: 0;
     background: var(--gray-300);
     border-radius: var(--radius-full);
-    transition: background 0.2s;
+    transition: background var(--transition-fast);
 }
 
 .cookie-switch-slider::before {
@@ -270,8 +276,8 @@
     bottom: 3px;
     background: #fff;
     border-radius: 50%;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform var(--transition-fast);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .cookie-switch input:checked + .cookie-switch-slider {
@@ -299,8 +305,9 @@
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 600;
+    font-family: var(--font-family);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background var(--transition-fast);
 }
 
 .cookie-btn-confirm:hover {
@@ -316,8 +323,9 @@
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 500;
+    font-family: var(--font-family);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .cookie-btn-accept-all:hover,
@@ -333,6 +341,7 @@
         right: var(--space-4);
         transform: none;
         max-width: none;
+        border-radius: var(--radius-xl);
     }
 
     @keyframes cookie-slide-up {

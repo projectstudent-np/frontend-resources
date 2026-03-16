@@ -47,7 +47,10 @@ export default function Access() {
     const [loginStep, setLoginStep] = useState<'cpf' | 'password'>('cpf');
     const [forgotLoading, setForgotLoading] = useState(false);
     const [forgotMsg, setForgotMsg] = useState('');
+    const [loginCpfExists, setLoginCpfExists] = useState(false);
+    const [checkingLoginCpf, setCheckingLoginCpf] = useState(false);
     const passwordRef = useRef<HTMLInputElement>(null);
+    const loginCpfDebounce = useRef<ReturnType<typeof setTimeout>>(null);
 
     // ── Register state ──
     const [regCpf, setRegCpf] = useState('');
@@ -83,10 +86,11 @@ export default function Access() {
                 });
                 if (!error && data.session) {
                     // E-mail verificado — deslogar e redirecionar para login
-                    await supabase.auth.signOut();
-                    setEmailVerified(true);
                     if (pollRef.current) clearInterval(pollRef.current);
-                    setTimeout(() => switchTab('login'), 1500);
+                    setEmailVerified(true);
+                    await supabase.auth.signOut();
+                    // Hard reload to /access to clear all auth state
+                    setTimeout(() => { window.location.href = '/access'; }, 1500);
                 }
             } catch { /* continua polling */ }
         };
@@ -99,6 +103,43 @@ export default function Access() {
             if (pollRef.current) clearInterval(pollRef.current);
         };
     }, [regSuccess, emailVerified]);
+
+    // Check if login CPF exists in system
+    useEffect(() => {
+        const rawCPF = loginCpf.replace(/\D/g, '');
+        setLoginCpfExists(false);
+
+        if (rawCPF.length !== 11) return;
+
+        if (loginCpfDebounce.current) clearTimeout(loginCpfDebounce.current);
+
+        loginCpfDebounce.current = setTimeout(async () => {
+            setCheckingLoginCpf(true);
+            try {
+                // Try raw digits first (how register stores it)
+                const { data: email } = await supabase.rpc('get_email_by_cpf', { p_cpf: rawCPF });
+                if (email) {
+                    setLoginCpfExists(true);
+                } else {
+                    // Try formatted CPF (some accounts may have been created with formatting)
+                    const formatted = loginCpf;
+                    const { data: email2 } = await supabase.rpc('get_email_by_cpf', { p_cpf: formatted });
+                    setLoginCpfExists(!!email2);
+                    if (!email2) {
+                        setLoginError('CPF não encontrado no sistema.');
+                    }
+                }
+            } catch {
+                setLoginCpfExists(false);
+            } finally {
+                setCheckingLoginCpf(false);
+            }
+        }, 400);
+
+        return () => {
+            if (loginCpfDebounce.current) clearTimeout(loginCpfDebounce.current);
+        };
+    }, [loginCpf]);
 
     // Auto-focus senha ao expandir login
     useEffect(() => {
@@ -190,6 +231,8 @@ export default function Access() {
         setLoginLoading(false);
         setLoginSuccess(false);
         setLoginStep('cpf');
+        setLoginCpfExists(false);
+        setCheckingLoginCpf(false);
         // Reset register
         setRegCpf('');
         setRegEmail('');
@@ -436,8 +479,12 @@ export default function Access() {
                                     {loginError && <p className="auth-error">{loginError}</p>}
 
                                     {loginStep === 'cpf' ? (
-                                        <button type="submit" className="btn btn-primary auth-btn">
-                                            Acessar
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary auth-btn"
+                                            disabled={!loginCpfExists || checkingLoginCpf}
+                                        >
+                                            {checkingLoginCpf ? 'Verificando...' : 'Acessar'}
                                         </button>
                                     ) : (
                                         <button
