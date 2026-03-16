@@ -45,6 +45,7 @@ function getNavLinks(role: string): NavLink[] {
     ];
 
     links.push({ to: '/help', label: 'Ajuda' });
+    links.push({ to: '/key-users', label: 'Usuários chave' });
 
     return links;
 }
